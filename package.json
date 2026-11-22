@@ -1,0 +1,48 @@
+{
+  "name": "opendevicerouter",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Browser and mobile session router for coding agents and test runners. Uses your own free cloud tiers first and stops before any billing.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/QA-army/opendevicerouter.git"
+  },
+  "bin": {
+    "odr": "dist/cli/index.js"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "odr": "tsx src/cli/index.ts",
+    "validate": "tsx src/cli/index.ts validate",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "node --import tsx --test test/*.test.ts",
+    "bench:summarize": "node bench/summarize.mjs",
+    "bench:check": "node bench/summarize.mjs --check",
+    "freshness": "tsx src/cli/index.ts freshness",
+    "check": "npm run validate && npm run typecheck && npm test && npm run docs:check && npm run bench:check",
+    "docs:free-tiers": "tsx src/cli/index.ts free-tiers --write",
+    "docs:check": "tsx src/cli/index.ts free-tiers --check"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "yaml": "^2.6.0"
+  },
+  "peerDependencies": {
+    "agent-device": ">=0.21.0"
+  },
+  "peerDependenciesMeta": {
+    "agent-device": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

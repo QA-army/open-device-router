@@ -1,0 +1,36 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: anchor-browser
+name: Anchor Browser
+status: candidate
+checked_at: '2026-11-22'
+homepage: https://anchorbrowser.io
+surfaces:
+  - desktop-browser
+hands:
+  kind: unknown
+  notes: Connection protocol not verified in this pass.
+signup:
+  required: true
+  evidence:
+    - not_researched
+credentials:
+  kind: unknown
+  acquire: unknown
+allowances:
+  - type: unverified
+    amount: 5
+    unit: credit
+    max_parallel: 5
+    scope: Free plan
+    source: https://anchorbrowser.io/pricing
+    notes: Worded as "5 credits per month"; the page does not state the credit-to-time conversion.
+paid:
+  summary: Browser time shown at $0.09 per hour in the pricing calculator.
+  source: https://anchorbrowser.io/pricing
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: unknown
+  third_party_access: unknown
+sources:
+  - https://anchorbrowser.io/pricing
+  - https://llms.anchorbrowser.io/anchor-browser-benchmark-results

@@ -1,0 +1,33 @@
+name: Provider fact changed
+description: A free tier, limit, signup step, or terms clause in an entry is out of date.
+title: "[provider] "
+labels: [registry]
+body:
+  - type: input
+    id: provider
+    attributes:
+      label: Provider id
+      description: The file name in registry/providers/ without .yaml
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: What changed
+      description: Quote the entry's current value and the vendor's current wording.
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Vendor page URL
+      description: First-party pages only (pricing, docs, terms).
+    validations:
+      required: true
+  - type: input
+    id: date
+    attributes:
+      label: Date you read the page
+      placeholder: YYYY-MM-DD
+    validations:
+      required: true

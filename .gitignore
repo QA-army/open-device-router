@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+.env
+.env.*
+# Local ledger and credentials never belong in the repo
+.opendevicerouter/
+bench/tmp/

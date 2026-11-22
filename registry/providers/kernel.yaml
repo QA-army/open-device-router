@@ -1,0 +1,38 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: kernel
+name: Kernel
+status: candidate
+checked_at: '2026-11-22'
+homepage: https://www.kernel.sh
+surfaces:
+  - desktop-browser
+hands:
+  kind: unknown
+  notes: Connection protocol not verified in this pass.
+signup:
+  required: true
+  evidence:
+    - not_researched
+  card_required: false
+  notes: Card requirement is from the pricing page. The signup form itself has not been checked.
+credentials:
+  kind: unknown
+  acquire: unknown
+allowances:
+  - type: monthly
+    amount: 5
+    unit: usd
+    max_parallel: 5
+    scope: Free plan, no card needed
+    source: https://www.kernel.sh/pricing
+    notes: Worded as "$5 / month free credits".
+paid:
+  summary: Usage listed at $0.0000166667 per GB-second.
+  source: https://www.kernel.sh/pricing
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: unknown
+  third_party_access: unknown
+sources:
+  - https://www.kernel.sh/pricing
+  - https://www.kernel.sh/benchmarks

@@ -1,0 +1,77 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: revyl
+name: Revyl
+status: launch
+checked_at: '2026-11-22'
+homepage: https://revyl.com
+surfaces:
+  - ios-simulator
+  - android-emulator
+hands:
+  kind: agent-device
+  provider_id: revyl
+  plugin: '@agent-device/revyl'
+  env:
+    - REVYL_API_KEY
+  source: https://agent-device.dev/docs/revyl
+  notes: Device is allocated on the first device command. `swipe`, `gesture` and `type` are refused; use
+    `scroll` and `fill`. No port reverse and no artifacts after close. The agent-device docs say Revyl
+    issues keys to its customers and that a partner integration gets one through Revyl's partner program.
+signup:
+  required: true
+  url: https://app.revyl.ai/
+  evidence:
+    - live_page
+    - docs
+  sso:
+    - google
+    - github
+    - saml_oidc
+  fields:
+    - name: email
+      required: true
+      from: user
+    - name: password
+      required: true
+      from: user_or_sso
+  human_steps:
+    - accept_terms
+  card_required: false
+  phone_required: unknown
+  work_email_required: unknown
+  notes: Adding a card moves the account to the paid Pro plan.
+credentials:
+  kind: api_key
+  acquire: device_code
+  login_command: revyl auth login
+  location: Dashboard > Settings > API Keys > Create key (shown once)
+  env:
+    - REVYL_API_KEY
+  source: https://docs.revyl.com/authentication
+  notes: '`revyl auth login` prints an approval URL and a short code; the browser can be on another machine.'
+allowances:
+  - type: monthly
+    amount: 1200
+    unit: device_minute
+    max_parallel: 2
+    scope: Free plan. Pricing page lists iOS, Android, web and Mac.
+    source: https://revyl.com/pricing/
+    notes: Worded as "Up to 1,200 free device minutes a month".
+paid:
+  summary: 'Pro: $0.075 per iOS or Android minute and $0.050 per web or Mac minute after the free minutes.
+    The page says "Free stops at its free minutes."'
+  source: https://revyl.com/pricing/
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: no_clause_found
+  third_party_access: restricted
+  terms_url: https://revyl.com/terms
+  terms_checked_note: Terms last updated 2026-10-07, read 2026-11-22.
+  notes: Terms prohibit letting others access or use the service ("provide, sell, transfer, sublicense,
+    lend, distribute, rent, or otherwise allow others to access or use the Services"). No benchmark clause
+    was found; that is not a clearance.
+sources:
+  - https://revyl.com/pricing/
+  - https://docs.revyl.com/authentication
+  - https://revyl.com/terms
+  - https://agent-device.dev/docs/revyl

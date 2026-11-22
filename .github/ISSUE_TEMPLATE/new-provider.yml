@@ -1,0 +1,36 @@
+name: Propose a provider
+description: A browser, simulator, emulator, or real-device service that has a free allowance.
+title: "[new provider] "
+labels: [registry]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Provider name and homepage
+    validations:
+      required: true
+  - type: textarea
+    id: allowance
+    attributes:
+      label: Free allowance
+      description: Amount, unit, how it renews, session and concurrency limits. Link the vendor page that says so.
+    validations:
+      required: true
+  - type: textarea
+    id: control
+    attributes:
+      label: How a test or agent drives it
+      description: For example an agent-device provider, CDP, WebDriver, or Playwright connect. Link the docs.
+    validations:
+      required: true
+  - type: textarea
+    id: terms
+    attributes:
+      label: Terms that matter
+      description: Anything on benchmarking, third-party access, automated signup, or one account per customer. Link the terms page.
+  - type: checkboxes
+    id: affiliation
+    attributes:
+      label: Disclosure
+      options:
+        - label: I work for or am paid by this provider

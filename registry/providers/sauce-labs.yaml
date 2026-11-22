@@ -1,0 +1,62 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: sauce-labs
+name: Sauce Labs
+status: researched
+checked_at: '2026-11-22'
+homepage: https://saucelabs.com
+surfaces:
+  - android-real
+  - ios-real
+  - android-emulator
+  - ios-simulator
+  - desktop-browser
+hands:
+  kind: webdriver-passthrough
+  notes: Not listed as an agent-device provider on the check date. Existing WebDriver or Appium tests
+    connect to the vendor endpoint directly.
+signup:
+  required: true
+  url: https://saucelabs.com/sign-up
+  evidence:
+    - live_page
+    - docs
+  sso:
+    - google
+    - github
+  fields: []
+  human_steps:
+    - accept_terms
+    - captcha_possible
+    - email_verification
+  card_required: false
+  phone_required: unknown
+  work_email_required: unknown
+  notes: The email signup form only renders after choosing "Sign up with email"; its fields were not captured.
+credentials:
+  kind: username_access_key
+  acquire: manual_copy
+  location: Account > User settings
+  source: https://docs.saucelabs.com/basics/acct-team-mgmt/managing-user-info/
+  notes: Environment variable names were not verified in this pass.
+allowances:
+  - type: one_time
+    amount: 60
+    unit: minute
+    max_parallel: 3
+    expires_days: 28
+    scope: Automated and live testing minutes in the 28-day trial
+    source: https://saucelabs.com/sign-up
+  - type: oss_program
+    unit: unlimited
+    scope: Open Sauce, for qualifying open-source projects
+    source: https://saucelabs.com/doc/support-policy
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: unknown
+  third_party_access: unknown
+  terms_url: https://saucelabs.com/doc/terms-of-service
+sources:
+  - https://saucelabs.com/sign-up
+  - https://docs.saucelabs.com/basics/acct-team-mgmt/managing-user-info/
+  - https://saucelabs.com/doc/support-policy
+  - https://saucelabs.com/doc/terms-of-service

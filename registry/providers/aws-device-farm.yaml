@@ -1,0 +1,103 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: aws-device-farm
+name: AWS Device Farm
+status: launch
+checked_at: '2026-11-22'
+homepage: https://aws.amazon.com/device-farm/
+surfaces:
+  - android-real
+  - ios-real
+hands:
+  kind: agent-device
+  provider_id: aws-device-farm
+  requires:
+    - AWS CLI with a working credential chain
+  connect_args:
+    - --aws-project-arn <project-arn>
+    - --aws-device-arn <device-arn>
+  source: https://agent-device.dev/docs/aws-device-farm
+  notes: Remote-access sessions. App is passed as an upload ARN (`--aws-app-arn`); there is no install
+    after allocation. Video and logs are available once AWS finalizes them.
+signup:
+  required: true
+  url: https://signin.aws.amazon.com/signup?request_type=register
+  evidence:
+    - live_page
+    - docs
+  sso: []
+  fields:
+    - name: root user email
+      required: true
+      from: user
+    - name: account name
+      required: true
+      from: agent
+    - name: password
+      required: true
+      from: user
+    - name: account type (personal or business)
+      required: true
+      from: user
+    - name: contact details and billing address
+      required: true
+      from: user
+    - name: payment method
+      required: true
+      from: user
+    - name: phone number
+      required: true
+      from: user
+  human_steps:
+    - accept_terms
+    - email_verification
+    - payment_card
+    - phone_code
+    - captcha_possible
+  card_required: true
+  phone_required: true
+  work_email_required: false
+  notes: AWS recommends a shared distribution-list address for the root user. Most teams already have
+    an AWS account; connect the existing one.
+credentials:
+  kind: iam_role
+  acquire: iam_role
+  env:
+    - AWS_REGION
+    - AWS_ROLE_ARN
+    - AWS_WEB_IDENTITY_TOKEN_FILE
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_SESSION_TOKEN
+  source: https://agent-device.dev/docs/aws-device-farm
+  notes: Standard AWS credential chain. Prefer short-lived role credentials over long-lived user keys.
+    A CloudFormation quick-create link that provisions a least-privilege role is proposed and not built.
+allowances:
+  - type: one_time
+    amount: 1000
+    unit: device_minute
+    max_session_minutes: 150
+    scope: Real-device free trial. Does not renew.
+    source: https://aws.amazon.com/device-farm/faqs/
+    notes: The pricing page describes 1,000 minutes as a limited-time offer in place of the standard
+      250. Managed Appium endpoint sessions run up to 150 minutes with a 5-minute idle timeout.
+paid:
+  summary: $0.17 per device minute; unmetered plan $250.00 per device slot per month; desktop browser
+    testing $0.005 per instance minute.
+  source: https://aws.amazon.com/device-farm/pricing/
+notes: Desktop browser testing is a separate, billed product with no free allowance listed, so it is not
+  a routed surface here.
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: allowed_with_replication
+  third_party_access: unknown
+  terms_url: https://aws.amazon.com/service-terms/
+  terms_checked_note: Service Terms last updated 2026-11-19, read 2026-11-22.
+  notes: Section 1.8 permits benchmarks; anyone who discloses one must include "all information necessary
+    to replicate such Benchmark" and accepts that AWS may benchmark their products in return.
+sources:
+  - https://aws.amazon.com/device-farm/faqs/
+  - https://aws.amazon.com/device-farm/pricing/
+  - https://repost.aws/knowledge-center/create-and-activate-aws-account
+  - https://docs.aws.amazon.com/devicefarm/latest/developerguide/appium-endpoint-interaction.html
+  - https://aws.amazon.com/service-terms/
+  - https://agent-device.dev/docs/aws-device-farm

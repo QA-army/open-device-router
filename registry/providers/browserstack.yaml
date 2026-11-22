@@ -1,0 +1,103 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: browserstack
+name: BrowserStack
+status: researched
+checked_at: '2026-11-22'
+homepage: https://www.browserstack.com
+surfaces:
+  - android-real
+  - ios-real
+  - desktop-browser
+  - mobile-browser
+hands:
+  kind: agent-device
+  provider_id: browserstack
+  surfaces:
+    - android-real
+    - ios-real
+  env:
+    - BROWSERSTACK_USERNAME
+    - BROWSERSTACK_ACCESS_KEY
+  connect_args:
+    - --device <device-name>
+    - --provider-os-version <os-version>
+    - --provider-app <app>
+  source: https://agent-device.dev/docs/browserstack
+  notes: App Automate sessions over WebDriver. Built into agent-device.
+signup:
+  required: true
+  url: https://www.browserstack.com/users/sign_up
+  evidence:
+    - live_page
+    - docs
+  fields:
+    - name: full name
+      required: unknown
+      from: agent
+    - name: business email
+      required: unknown
+      from: user
+    - name: password
+      required: unknown
+      from: user
+  human_steps:
+    - accept_terms
+    - captcha_possible
+  card_required: unknown
+  phone_required: unknown
+  work_email_required: true
+  notes: Social sign-in buttons did not render without interaction on the check date; re-check in a real
+    browser session.
+credentials:
+  kind: username_access_key
+  acquire: manual_copy
+  location: Account profile
+  env:
+    - BROWSERSTACK_USERNAME
+    - BROWSERSTACK_ACCESS_KEY
+  source: https://www.browserstack.com/docs/automate/selenium/getting-started/java
+allowances:
+  - type: one_time
+    amount: 100
+    unit: browser_minute
+    scope: Automate (trial)
+    surfaces:
+      - desktop-browser
+      - mobile-browser
+    source: https://www.browserstack.com/users/sign_up
+    notes: The trial FAQ lists 60 Automate minutes; confirm in the account after connecting.
+  - type: one_time
+    amount: 100
+    unit: device_minute
+    scope: App Automate (trial)
+    surfaces:
+      - android-real
+      - ios-real
+    source: https://www.browserstack.com/users/sign_up
+  - type: one_time
+    amount: 30
+    unit: minute
+    manual_only: true
+    scope: Live and App Live, 30 minutes each (trial)
+    source: https://www.browserstack.com/users/sign_up
+  - type: oss_program
+    unit: unlimited
+    max_parallel: 5
+    scope: Qualifying open-source projects, by application
+    source: https://www.browserstack.com/open-source
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: restricted
+  third_party_access: restricted
+  terms_url: https://www.browserstack.com/terms
+  terms_checked_note: Terms last updated 2026-02-13, read 2026-11-22.
+  notes: Terms say the customer will not "publicly disseminate information regarding the performance of
+    the Services", will not "provide access to or sublicense the Services to a third party", and that
+    trials are "solely for Customer's use to determine whether to purchase a paid subscription". Excluded
+    from the public benchmark unless BrowserStack gives written permission.
+sources:
+  - https://www.browserstack.com/users/sign_up
+  - https://www.browserstack.com/support/faq/plans-pricing/plans/what-do-i-get-with-a-free-trial
+  - https://www.browserstack.com/open-source
+  - https://www.browserstack.com/terms
+  - https://agent-device.dev/docs/browserstack

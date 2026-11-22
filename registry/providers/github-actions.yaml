@@ -1,0 +1,47 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: github-actions
+name: GitHub-hosted runners
+status: launch
+checked_at: '2026-11-22'
+homepage: https://docs.github.com/en/actions
+surfaces:
+  - ios-simulator
+  - android-emulator
+  - desktop-browser
+hands:
+  kind: agent-device
+  requires:
+    - macOS runner for iOS Simulator
+    - Linux runner with KVM for Android emulator
+  source: https://github.com/callstack/agent-device
+  notes: The job runs on the runner, so agent-device talks to a simulator or emulator on the same machine.
+signup:
+  required: false
+  evidence:
+    - not_applicable
+  notes: Uses the GitHub account that already owns the repository.
+credentials:
+  kind: none
+  acquire: none
+  notes: Jobs use the repository's own GITHUB_TOKEN.
+allowances:
+  - type: public_repo
+    unit: unlimited
+    scope: Standard GitHub-hosted runners on public repositories. Larger runners are billed.
+    source: https://docs.github.com/en/actions/concepts/billing-and-usage
+    notes: Private repositories get a monthly minute quota by plan instead. Concurrency limits by plan
+      are in the GitHub usage-limits docs.
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: unknown
+  third_party_access: restricted
+  terms_url: https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features
+  terms_checked_note: Actions section read 2026-11-22.
+  notes: Hosted runners may not be used for activity "unrelated to the production, testing, deployment,
+    or publication of the software project associated with the repository", nor for "the provision of
+    a stand-alone or integrated application or service offering the Actions product". Route only a repository's
+    own tests here. Do not resell runner time.
+sources:
+  - https://docs.github.com/en/actions/concepts/billing-and-usage
+  - https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features
+  - https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners

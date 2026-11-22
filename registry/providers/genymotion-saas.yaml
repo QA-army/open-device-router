@@ -1,0 +1,70 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: genymotion-saas
+name: Genymotion SaaS
+status: researched
+checked_at: '2026-11-22'
+homepage: https://www.genymotion.com/genymotion-saas/
+surfaces:
+  - android-emulator
+hands:
+  kind: unknown
+  notes: Automation path through agent-device not verified in this pass.
+signup:
+  required: true
+  url: https://account.geny.io/signup
+  evidence:
+    - live_page
+    - docs
+  sso:
+    - google
+    - github
+  fields:
+    - name: email
+      required: unknown
+      from: user
+    - name: password
+      required: unknown
+      from: user_or_sso
+    - name: trial request form (individual or company)
+      required: true
+      from: user
+  human_steps:
+    - accept_terms
+    - captcha_possible
+    - email_verification
+    - sales_review
+  card_required: unknown
+  phone_required: unknown
+  work_email_required: unknown
+  notes: 'Disposable email providers are rejected. The trial is granted on request: individuals within
+    5 business days, companies within 2 business days and with a professional email plus company details.
+    The research notes record a one-trial-per-IP rule in the Genymotion terms.'
+credentials:
+  kind: api_key
+  acquire: manual_copy
+  login_command: gmsaas auth token <token>
+  env:
+    - GENYMOTION_API_TOKEN
+  source: https://docs.genymotion.com/gmsaas/
+allowances:
+  - type: one_time
+    amount: 60
+    unit: device_minute
+    max_parallel: 2
+    scope: Trial for individuals, on request
+    source: https://support.genymotion.com/hc/en-us/articles/17982644496157-How-do-I-get-the-free-trial-for-Genymotion-Cloud-SaaS
+  - type: one_time
+    amount: 1000
+    unit: device_minute
+    max_parallel: 10
+    scope: Trial for companies, on request
+    source: https://support.genymotion.com/hc/en-us/articles/17982644496157-How-do-I-get-the-free-trial-for-Genymotion-Cloud-SaaS
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: unknown
+  third_party_access: unknown
+  terms_url: https://www.genymotion.com/genymotion-saas/
+sources:
+  - https://support.genymotion.com/hc/en-us/articles/17982644496157-How-do-I-get-the-free-trial-for-Genymotion-Cloud-SaaS
+  - https://docs.genymotion.com/saas/
+  - https://docs.genymotion.com/gmsaas/

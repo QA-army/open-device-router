@@ -1,0 +1,71 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: testmu-ai
+name: TestMu AI (formerly LambdaTest)
+status: researched
+checked_at: '2026-11-22'
+homepage: https://www.testmuai.com
+surfaces:
+  - android-emulator
+  - ios-simulator
+  - android-real
+  - ios-real
+  - desktop-browser
+hands:
+  kind: agent-device
+  provider_id: testmu
+  plugin: '@agent-device/testmu'
+  surfaces:
+    - android-emulator
+    - ios-simulator
+    - android-real
+    - ios-real
+  env:
+    - LT_USERNAME
+    - LT_ACCESS_KEY
+  source: https://agent-device.dev/docs/device-clouds
+  notes: WebDriver sessions. Emulators and simulators by default; real devices with `--provider-device-type
+    real`.
+signup:
+  required: true
+  url: https://accounts.lambdatest.com/register
+  evidence:
+    - live_page
+    - docs
+  sso:
+    - google
+    - github
+  fields:
+    - name: work email
+      required: unknown
+      from: user
+    - name: password
+      required: unknown
+      from: user_or_sso
+  human_steps:
+    - accept_terms
+  card_required: unknown
+  phone_required: unknown
+  work_email_required: true
+credentials:
+  kind: username_access_key
+  acquire: manual_copy
+  location: Dashboard > Credentials
+  env:
+    - LT_USERNAME
+    - LT_ACCESS_KEY
+  source: https://www.testmuai.com/support/docs/testmu-running-your-first-selenium-test/
+allowances:
+  - type: one_time
+    amount: 100
+    unit: minute
+    max_parallel: 2
+    scope: Lifetime automation minutes on the free plan. Does not renew.
+    source: https://www.testmuai.com/pricing/
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: unknown
+  third_party_access: unknown
+sources:
+  - https://www.testmuai.com/pricing/
+  - https://www.testmuai.com/support/docs/testmu-running-your-first-selenium-test/
+  - https://agent-device.dev/docs/device-clouds

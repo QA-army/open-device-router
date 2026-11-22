@@ -1,0 +1,107 @@
+name: bench-github-runners
+
+# Measures cold boot of an iOS Simulator and an Android emulator on standard GitHub-hosted runners,
+# then commits the raw result files and the regenerated bench/RESULTS.md.
+# Kept small on purpose: a few samples, once a week. See bench/METHODOLOGY.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: Cold boots per target (1-10)
+        default: "5"
+        required: true
+  schedule:
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bench-github-runners
+  cancel-in-progress: false
+
+env:
+  SAMPLES: ${{ github.event.inputs.samples || '5' }}
+  ODR_BENCH_PROVIDER: github-actions
+
+jobs:
+  ios-simulator:
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      ODR_BENCH_RUNNER_LABEL: macos-15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check sample count
+        run: '[[ "$SAMPLES" =~ ^([1-9]|10)$ ]] || { echo "samples must be 1-10"; exit 1; }'
+      - name: Cold boot iOS Simulator
+        run: node bench/runners/ios-simulator.mjs --samples "$SAMPLES" --out-dir bench/tmp/out
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: bench-ios-simulator
+          path: bench/tmp/out
+          if-no-files-found: error
+
+  android-emulator:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      ODR_BENCH_RUNNER_LABEL: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check sample count
+        run: '[[ "$SAMPLES" =~ ^([1-9]|10)$ ]] || { echo "samples must be 1-10"; exit 1; }'
+      - name: Allow the runner user to use KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Cold boot Android emulator
+        run: node bench/runners/android-emulator.mjs --samples "$SAMPLES" --out-dir bench/tmp/out
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: bench-android-emulator
+          path: bench/tmp/out
+          if-no-files-found: error
+
+  publish:
+    needs: [ios-simulator, android-emulator]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: bench-*
+          path: bench/results
+          merge-multiple: true
+      - name: Rebuild RESULTS.md from the result files
+        run: npm run bench:summarize
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bench/results bench/RESULTS.md
+          if git diff --cached --quiet; then
+            echo "No new result files."
+            exit 0
+          fi
+          git commit -m "bench: results from run ${GITHUB_RUN_ID}"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1

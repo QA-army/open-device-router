@@ -1,0 +1,61 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: browserbase
+name: Browserbase
+status: researched
+checked_at: '2026-11-22'
+homepage: https://www.browserbase.com
+surfaces:
+  - desktop-browser
+hands:
+  kind: cdp-passthrough
+  notes: Chromium sessions over CDP; Playwright or Puppeteer connect directly.
+signup:
+  required: true
+  url: https://www.browserbase.com/sign-up
+  evidence:
+    - live_page
+    - docs
+  sso:
+    - google
+  fields:
+    - name: email
+      required: true
+      from: user
+    - name: phone number
+      required: true
+      from: user
+    - name: password
+      required: true
+      from: user_or_sso
+  human_steps:
+    - accept_terms
+    - captcha_possible
+    - phone_code
+  card_required: false
+  phone_required: true
+  work_email_required: unknown
+credentials:
+  kind: api_key
+  acquire: manual_copy
+  location: Project overview dashboard (API key and Project ID)
+  env:
+    - BROWSERBASE_API_KEY
+  source: https://docs.browserbase.com/introduction/getting-started
+allowances:
+  - type: monthly
+    amount: 60
+    unit: browser_minute
+    max_session_minutes: 15
+    scope: Free plan
+    source: https://docs.browserbase.com/account/billing/plans
+    notes: Concurrency was listed as 1 in the getting-started guide and 3 on the plans page on the check
+      date; verify in the account.
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: unknown
+  third_party_access: unknown
+sources:
+  - https://docs.browserbase.com/account/billing/plans
+  - https://www.browserbase.com/pricing
+  - https://docs.browserbase.com/introduction/getting-started
+  - https://www.browserbase.com/sign-up

@@ -1,0 +1,59 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: azure-playwright-workspaces
+name: Azure Playwright Workspaces
+status: researched
+checked_at: '2026-11-22'
+homepage: https://learn.microsoft.com/en-us/azure/app-testing/playwright-workspaces/overview-what-is-microsoft-playwright-workspaces
+surfaces:
+  - desktop-browser
+hands:
+  kind: playwright-connect
+  notes: Playwright tests connect to service-hosted browsers.
+signup:
+  required: true
+  url: https://signup.azure.com/
+  evidence:
+    - live_page
+    - docs
+  sso:
+    - microsoft
+    - github
+  fields:
+    - name: Microsoft or GitHub account
+      required: true
+      from: user
+    - name: phone number
+      required: true
+      from: user
+    - name: credit or non-prepaid debit card
+      required: true
+      from: user
+  human_steps:
+    - accept_terms
+    - phone_code
+    - payment_card
+  card_required: true
+  phone_required: true
+  work_email_required: unknown
+  notes: A temporary $1 verification hold may be placed on the card. One free account per new customer.
+credentials:
+  kind: cloud_account
+  acquire: manual_copy
+  location: Azure subscription and a Playwright workspace; needs Owner or Contributor role
+  source: https://learn.microsoft.com/en-us/azure/app-testing/playwright-workspaces/how-to-try-playwright-workspaces-free
+allowances:
+  - type: one_time
+    amount: 100
+    unit: browser_minute
+    expires_days: 30
+    scope: First workspace in the subscription only. Exceeding a limit converts the workspace to pay-as-you-go.
+    source: https://learn.microsoft.com/en-us/azure/app-testing/playwright-workspaces/how-to-try-playwright-workspaces-free
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: unknown
+  third_party_access: unknown
+notes: The trial converts to paid automatically when a limit is exceeded, so the router must hard-stop
+  before the limit.
+sources:
+  - https://learn.microsoft.com/en-us/azure/app-testing/playwright-workspaces/how-to-try-playwright-workspaces-free
+  - https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account

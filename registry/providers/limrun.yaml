@@ -1,0 +1,78 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: limrun
+name: Limrun
+status: launch
+checked_at: '2026-11-22'
+homepage: https://limrun.com
+surfaces:
+  - ios-simulator
+  - android-emulator
+hands:
+  kind: agent-device
+  provider_id: limrun
+  env:
+    - LIMRUN_API_KEY
+  source: https://agent-device.dev/docs/limrun
+  notes: Built into agent-device. Instance is allocated on the first device command and ends after five
+    idle minutes unless LIMRUN_KEEP_ALIVE is set. Android port reverse over ADB; none on iOS. No artifacts
+    after close.
+signup:
+  required: true
+  url: https://console.limrun.com/authn/login
+  evidence:
+    - live_page
+    - docs
+  sso:
+    - google
+    - github
+    - agentid
+    - email_code
+    - saml_oidc
+  fields: []
+  human_steps:
+    - accept_terms
+  card_required: false
+  phone_required: unknown
+  work_email_required: unknown
+  notes: Button-only login screen. A payment method is needed only if the user turns on trial overage.
+credentials:
+  kind: api_key
+  acquire: browser_login
+  login_command: lim login
+  location: console.limrun.com/settings > API Keys > Create Token
+  env:
+    - LIMRUN_API_KEY
+    - LIM_API_KEY
+  source: https://docs.limrun.com/docs/quickstart
+  notes: '`lim login` finishes in the browser and writes the key to ~/.lim/config.yaml. The lim CLI reads
+    LIM_API_KEY; agent-device reads LIMRUN_API_KEY.'
+allowances:
+  - type: one_time
+    amount: 120
+    unit: credit
+    scope: Trial plan
+    per_minute:
+      ios-simulator: 2
+      android-emulator: 1
+    source: https://limrun.com/pricing
+    notes: Pricing page lists 2 credits per iOS Simulator minute and 1 per Android Emulator minute, so
+      120 credits is 60 iOS minutes or 120 Android minutes. Instances created through agent-device end
+      after five idle minutes.
+paid:
+  summary: Entry plan $20.00 per month with 500 credits per month. Trial overage is opt-in and needs a
+    payment method.
+  source: https://limrun.com/pricing
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: no_clause_found
+  third_party_access: restricted
+  terms_url: https://limrun.com/terms
+  terms_checked_note: Terms effective 2026-09-15, read 2026-11-22.
+  notes: Terms prohibit "reselling or providing third parties access to the Services without Limrun's
+    written agreement" and automated access "except through documented APIs, command-line tools, SDKs".
+    No benchmark clause was found; that is not a clearance.
+sources:
+  - https://limrun.com/pricing
+  - https://docs.limrun.com/docs/quickstart
+  - https://limrun.com/terms
+  - https://agent-device.dev/docs/limrun

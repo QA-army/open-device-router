@@ -1,0 +1,41 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: local
+name: Local devices
+status: baseline
+checked_at: '2026-11-22'
+homepage: https://agent-device.dev
+surfaces:
+  - ios-simulator
+  - android-emulator
+  - ios-real
+  - android-real
+  - desktop-browser
+hands:
+  kind: agent-device
+  requires:
+    - Node.js 22.12 or newer
+    - Xcode for iOS targets
+    - Android SDK for Android targets
+  source: https://github.com/callstack/agent-device
+  notes: No `connect` step. agent-device drives simulators, emulators and USB devices on the same machine.
+signup:
+  required: false
+  evidence:
+    - not_applicable
+credentials:
+  kind: none
+  acquire: none
+allowances:
+  - type: self_hosted
+    unit: unlimited
+    scope: Your own hardware
+    source: https://github.com/callstack/agent-device
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: not_applicable
+  third_party_access: not_applicable
+notes: iOS Simulator needs macOS. Always ranked first by the router because it costs nothing and has no
+  quota.
+sources:
+  - https://github.com/callstack/agent-device
+  - https://agent-device.dev/docs/commands

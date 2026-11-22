@@ -1,0 +1,54 @@
+name: registry-freshness
+
+# Opens or updates one issue when provider entries have not been re-checked recently.
+# It never edits entries: a person re-reads the vendor pages and opens a pull request.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 7 * * 1"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  freshness:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: List stale entries
+        id: stale
+        run: |
+          if npm run -s freshness > stale.txt; then
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+          fi
+          cat stale.txt
+      - name: Open or update the tracking issue
+        if: steps.stale.outputs.stale == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "These provider entries were last checked more than 45 days ago. Free tiers and terms change without notice."
+            echo
+            echo '```'
+            cat stale.txt
+            echo '```'
+            echo
+            echo "To fix: re-read the linked vendor pages, update the entry and its \`checked_at\`, and open a pull request. See CONTRIBUTING.md."
+          } > body.md
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"Provider entries need a re-check\"" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --repo "$GITHUB_REPOSITORY" --body-file body.md
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "Provider entries need a re-check" --body-file body.md
+          fi

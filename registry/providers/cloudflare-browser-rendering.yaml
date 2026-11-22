@@ -1,0 +1,65 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: cloudflare-browser-rendering
+name: Cloudflare Browser Rendering
+status: researched
+checked_at: '2026-11-22'
+homepage: https://developers.cloudflare.com/browser-rendering/
+surfaces:
+  - desktop-browser
+hands:
+  kind: cdp-passthrough
+  notes: Chromium driven through Puppeteer or Playwright.
+signup:
+  required: true
+  url: https://dash.cloudflare.com/sign-up
+  evidence:
+    - live_page
+    - docs
+  sso:
+    - google
+    - apple
+    - github
+  fields:
+    - name: email
+      required: true
+      from: user
+    - name: password
+      required: true
+      from: user_or_sso
+  human_steps:
+    - accept_terms
+    - captcha_possible
+    - email_verification
+  card_required: unknown
+  phone_required: unknown
+  work_email_required: false
+credentials:
+  kind: api_key
+  acquire: device_code
+  login_command: npx wrangler login --device
+  location: API token with Browser Rendering - Edit permission
+  env:
+    - CLOUDFLARE_API_TOKEN
+  source: https://developers.cloudflare.com/workers/wrangler/commands/general/
+allowances:
+  - type: daily
+    amount: 10
+    unit: browser_minute
+    max_parallel: 3
+    scope: Workers Free plan. Requests return 429 until the next UTC day once used up.
+    source: https://developers.cloudflare.com/browser-rendering/llms-full.txt
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: allowed_with_replication
+  third_party_access: restricted
+  terms_url: https://www.cloudflare.com/terms/
+  terms_checked_note: Terms last updated 2025-09-12, read 2026-11-22.
+  notes: Section 2.2.2 permits benchmark tests if the disclosure includes "all information necessary to
+    replicate" them. Section 2.2.1 prohibits signing up "on behalf of a third party" and scripts that
+    "produce multiple accounts".
+sources:
+  - https://developers.cloudflare.com/browser-rendering/llms-full.txt
+  - https://developers.cloudflare.com/fundamentals/account/create-account/
+  - https://developers.cloudflare.com/workers/wrangler/commands/general/
+  - https://developers.cloudflare.com/browser-rendering/get-started/
+  - https://www.cloudflare.com/terms/
