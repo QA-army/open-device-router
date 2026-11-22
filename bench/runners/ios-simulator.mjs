@@ -4,7 +4,7 @@
 import { mkdtempSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { environment, errorText, harness, parseArgs, run, timed, tryRun, writeResult } from "./lib.mjs";
+import { environment, errorText, finish, harness, parseArgs, run, timed, tryRun, BOOT_TIMEOUT_MS } from "./lib.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const provider = process.env.ODR_BENCH_PROVIDER ?? "local";
@@ -52,7 +52,7 @@ async function sample(index, target, shots) {
 
     const bootStart = performance.now();
     // `bootstatus -b` boots the device if needed and returns once the system reports boot complete.
-    await run("xcrun", ["simctl", "bootstatus", udid, "-b"]);
+    await run("xcrun", ["simctl", "bootstatus", udid, "-b"], { timeout: BOOT_TIMEOUT_MS });
     out.boot_ms = Math.round(performance.now() - bootStart);
 
     const shot = join(shots, `${index}.png`);
@@ -86,7 +86,7 @@ for (let i = 0; i < args.samples; i += 1) {
   samples.push(s);
 }
 
-const file = writeResult(args.outDir, {
+finish(args.outDir, {
   schema: "odr.bench.result/v1",
   provider,
   target: "ios-simulator",
@@ -103,4 +103,3 @@ const file = writeResult(args.outDir, {
   setup_ms: setup.ms,
   samples,
 });
-console.log(`wrote ${file}`);

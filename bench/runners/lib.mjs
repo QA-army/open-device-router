@@ -8,6 +8,8 @@ import { promisify } from "node:util";
 const execFileP = promisify(execFile);
 
 export const STEP_TIMEOUT_MS = 10 * 60 * 1000;
+/** A boot that has not completed by this point counts as a failed sample. */
+export const BOOT_TIMEOUT_MS = 5 * 60 * 1000;
 
 /** Run a command and return trimmed stdout. Rejects on non-zero exit or timeout. */
 export async function run(cmd, args, opts = {}) {
@@ -84,6 +86,21 @@ export function writeResult(outDir, result) {
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, `${JSON.stringify(result, null, 2)}\n`);
   return file;
+}
+
+/**
+ * Writes the result where the publish step picks it up, unless no sample started.
+ * A run where nothing started cannot be told apart from a broken harness, so it is written
+ * to a separate folder for diagnosis and the process exits non-zero.
+ */
+export function finish(outDir, result) {
+  if (result.samples.some((s) => s.ok)) {
+    console.log(`wrote ${writeResult(outDir, result)}`);
+    return;
+  }
+  const file = writeResult(join(dirname(outDir), "rejected"), result);
+  console.error(`No sample started. Not publishable; kept for diagnosis at ${file}`);
+  process.exitCode = 1;
 }
 
 export function errorText(e) {

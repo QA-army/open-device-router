@@ -2,9 +2,10 @@
 // Cold boot of an Android emulator with wiped data. Needs the Android SDK and hardware acceleration (KVM on Linux).
 // Usage: node bench/runners/android-emulator.mjs [--samples 5] [--out-dir bench/tmp/out]
 import { execSync, spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
-import { environment, errorText, harness, parseArgs, run, sleep, timed, tryRun, writeResult, STEP_TIMEOUT_MS } from "./lib.mjs";
+import { environment, errorText, finish, harness, parseArgs, run, sleep, timed, tryRun, BOOT_TIMEOUT_MS, STEP_TIMEOUT_MS } from "./lib.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const provider = process.env.ODR_BENCH_PROVIDER ?? "local";
@@ -27,11 +28,19 @@ const adb = join(sdk, "platform-tools", "adb");
 const emulator = join(sdk, "emulator", "emulator");
 if (!existsSync(sdkmanager)) throw new Error(`sdkmanager not found at ${sdkmanager}`);
 
-function setup() {
+// avdmanager and the emulator do not always agree on where AVDs live (for example when XDG_CONFIG_HOME is set),
+// so both are pointed at the same directory.
+const AVD_HOME = process.env.ANDROID_AVD_HOME ?? join(homedir(), ".android", "avd");
+process.env.ANDROID_AVD_HOME = AVD_HOME;
+
+async function setup() {
+  mkdirSync(AVD_HOME, { recursive: true });
   const opts = { stdio: ["pipe", "inherit", "inherit"], timeout: STEP_TIMEOUT_MS * 2, shell: "/bin/bash" };
   execSync(`yes | "${sdkmanager}" --licenses > /dev/null || true`, opts);
   execSync(`"${sdkmanager}" "platform-tools" "emulator" "${IMAGE}" > /dev/null`, opts);
   execSync(`echo no | "${avdmanager}" create avd --force -n ${AVD} -k "${IMAGE}" -d ${DEVICE}`, opts);
+  const listed = (await run(emulator, ["-list-avds"])).split("\n").map((l) => l.trim());
+  if (!listed.includes(AVD)) throw new Error(`setup fault: the emulator does not list AVD ${AVD} in ${AVD_HOME}`);
 }
 
 async function waitForBoot(child, deadline) {
@@ -60,7 +69,7 @@ async function sample(index) {
   child.stderr.on("data", keep);
   const exited = new Promise((resolve) => child.once("exit", resolve));
   try {
-    await waitForBoot(child, bootStart + STEP_TIMEOUT_MS);
+    await waitForBoot(child, bootStart + BOOT_TIMEOUT_MS);
     out.boot_ms = Math.round(performance.now() - bootStart);
     const png = await run(adb, ["-s", SERIAL, "exec-out", "screencap", "-p"], { encoding: "buffer", timeout: 60_000 });
     if (!png || png.length === 0) throw new Error("screenshot was empty");
@@ -81,8 +90,9 @@ async function sample(index) {
 }
 
 const started = new Date();
-const setupTime = await timed(async () => setup());
-const emulatorVersion = (await tryRun(emulator, ["-version"]))?.split("\n")[0] ?? "unknown";
+const setupTime = await timed(setup);
+const emulatorVersion =
+  (await tryRun(emulator, ["-version"]))?.split("\n").find((l) => /version/i.test(l))?.trim().slice(0, 120) ?? "unknown";
 const kvm = existsSync("/dev/kvm") ? "present" : "absent";
 const samples = [];
 for (let i = 0; i < args.samples; i += 1) {
@@ -92,7 +102,7 @@ for (let i = 0; i < args.samples; i += 1) {
 }
 await tryRun(adb, ["kill-server"], { timeout: 30_000 });
 
-const file = writeResult(args.outDir, {
+finish(args.outDir, {
   schema: "odr.bench.result/v1",
   provider,
   target: "android-emulator",
@@ -109,4 +119,3 @@ const file = writeResult(args.outDir, {
   setup_ms: setupTime.ms,
   samples,
 });
-console.log(`wrote ${file}`);

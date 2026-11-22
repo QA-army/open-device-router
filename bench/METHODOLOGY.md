@@ -22,7 +22,9 @@ Only the first two are measured today, and only on GitHub-hosted runners. Result
 
 `setup_ms` is reported separately and is never part of `boot_ms`.
 
-**Failed boot.** A sample fails when a step errors, when boot does not complete within 10 minutes, or when the screenshot is empty. Failed samples stay in the file with their error text and count toward the failed-boot rate. They are never dropped or re-run.
+**Failed boot.** A sample fails when a step errors, when boot does not complete within 5 minutes, or when the screenshot is empty. Failed samples stay in the file with their error text and count toward the failed-boot rate. They are never dropped or re-run.
+
+**A run where nothing started.** If no sample in a run starts, the run is not published. From the outside, a total outage and a broken harness look the same, so the runner exits with an error, keeps the file as a `rejected-*` workflow artifact for diagnosis, and `npm run bench:check` refuses such a file. This means the published failed-boot rate cannot show a total outage. If one happens, it is recorded by hand in an issue with the rejected file attached.
 
 ## What is not measured yet
 

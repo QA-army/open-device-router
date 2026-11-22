@@ -42,7 +42,13 @@ jobs:
         with:
           name: bench-ios-simulator
           path: bench/tmp/out
-          if-no-files-found: error
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: rejected-ios-simulator
+          path: bench/tmp/rejected
+          if-no-files-found: ignore
 
   android-emulator:
     runs-on: ubuntu-24.04
@@ -65,7 +71,13 @@ jobs:
         with:
           name: bench-android-emulator
           path: bench/tmp/out
-          if-no-files-found: error
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: rejected-android-emulator
+          path: bench/tmp/rejected
+          if-no-files-found: ignore
 
   publish:
     needs: [ios-simulator, android-emulator]
