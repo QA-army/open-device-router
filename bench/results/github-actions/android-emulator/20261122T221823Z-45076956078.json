@@ -1,0 +1,76 @@
+{
+  "schema": "odr.bench.result/v1",
+  "provider": "github-actions",
+  "target": "android-emulator",
+  "measurement": "cold-boot",
+  "started_at": "2026-11-22T22:18:23.151Z",
+  "finished_at": "2026-11-22T22:22:26.438Z",
+  "harness": {
+    "repository": "QA-army/opendevicerouter",
+    "commit": "5b5478da47961e6a074e7247f2df8223e0ae8430",
+    "script": "bench/runners/android-emulator.mjs",
+    "run_url": "https://github.com/QA-army/opendevicerouter/actions/runs/45076956078"
+  },
+  "environment": {
+    "runner_label": "ubuntu-24.04",
+    "image_os": "ubuntu24",
+    "image_version": "20261116.376.1",
+    "os": "linux",
+    "os_release": "7.0.0-1017-azure",
+    "arch": "x64",
+    "cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "cpu_count": 4,
+    "memory_gb": 15.6,
+    "tools": {
+      "emulator": "unknown",
+      "kvm": "present",
+      "node": "v22.23.5"
+    }
+  },
+  "device": {
+    "name": "pixel_6",
+    "os_version": "Android API 34",
+    "details": {
+      "system_image": "system-images;android-34;google_apis;x86_64",
+      "flags": "-no-window -no-audio -no-boot-anim -no-snapshot -wipe-data -gpu swiftshader_indirect"
+    }
+  },
+  "setup_ms": 40651,
+  "samples": [
+    {
+      "index": 0,
+      "ok": true,
+      "boot_ms": 37667,
+      "first_frame_ms": 38912,
+      "teardown_ms": 1611
+    },
+    {
+      "index": 1,
+      "ok": true,
+      "boot_ms": 38335,
+      "first_frame_ms": 39087,
+      "teardown_ms": 1436
+    },
+    {
+      "index": 2,
+      "ok": true,
+      "boot_ms": 38262,
+      "first_frame_ms": 39101,
+      "teardown_ms": 1429
+    },
+    {
+      "index": 3,
+      "ok": true,
+      "boot_ms": 38063,
+      "first_frame_ms": 38742,
+      "teardown_ms": 1771
+    },
+    {
+      "index": 4,
+      "ok": true,
+      "boot_ms": 38513,
+      "first_frame_ms": 39064,
+      "teardown_ms": 1447
+    }
+  ]
+}

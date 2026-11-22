@@ -4,4 +4,18 @@
 
 Method, definitions and limits: [METHODOLOGY.md](METHODOLOGY.md). Raw data: [results/](results/).
 
-No results yet. Nothing has been measured, so there are no numbers to show.
+## Cold boot
+
+All runs to date, pooled. p95 is shown only from 20 successful samples up. "Failed boots" counts samples where the device did not finish booting or could not return a screenshot.
+
+| Provider | Target | Runner | Device | Runs | Samples | Failed boots | Boot median | Boot p95 | First frame median | Teardown median | Last run |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| github-actions | android-emulator | ubuntu-24.04 | pixel_6, Android API 34 | 1 | 5 | 0 (0.0%) | 38.3 s | n < 20 | 39.1 s | 1.4 s | 2026-11-22 |
+| github-actions | ios-simulator | macos-15 | iPhone 17, iOS 26.2 | 1 | 5 | 0 (0.0%) | 78.9 s | n < 20 | 153.4 s | 17.6 s | 2026-11-22 |
+
+## Runs
+
+| Started (UTC) | Provider | Target | Image | Samples | Failed | Boot min | Boot median | Boot max | Setup | Commit | Run | Raw |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-22 22:18 | github-actions | ios-simulator | macos15 20261118.0550.1 | 5 | 0 | 65.0 s | 78.9 s | 160.9 s | 13.5 s | `5b5478d` | [run](https://github.com/QA-army/opendevicerouter/actions/runs/45076956078) | [json](results/github-actions/ios-simulator/20261122T221825Z-45076956078.json) |
+| 2026-11-22 22:18 | github-actions | android-emulator | ubuntu24 20261116.376.1 | 5 | 0 | 37.7 s | 38.3 s | 38.5 s | 40.7 s | `5b5478d` | [run](https://github.com/QA-army/opendevicerouter/actions/runs/45076956078) | [json](results/github-actions/android-emulator/20261122T221823Z-45076956078.json) |

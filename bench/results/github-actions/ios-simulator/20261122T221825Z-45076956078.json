@@ -1,0 +1,81 @@
+{
+  "schema": "odr.bench.result/v1",
+  "provider": "github-actions",
+  "target": "ios-simulator",
+  "measurement": "cold-boot",
+  "started_at": "2026-11-22T22:18:25.157Z",
+  "finished_at": "2026-11-22T22:31:45.802Z",
+  "harness": {
+    "repository": "QA-army/opendevicerouter",
+    "commit": "5b5478da47961e6a074e7247f2df8223e0ae8430",
+    "script": "bench/runners/ios-simulator.mjs",
+    "run_url": "https://github.com/QA-army/opendevicerouter/actions/runs/45076956078"
+  },
+  "environment": {
+    "runner_label": "macos-15",
+    "image_os": "macos15",
+    "image_version": "20261118.0550.1",
+    "os": "darwin",
+    "os_release": "24.6.0",
+    "arch": "arm64",
+    "cpu_model": "Apple M1 (Virtual)",
+    "cpu_count": 3,
+    "memory_gb": 7,
+    "tools": {
+      "xcode": "Xcode 16.4, Build version 16F6",
+      "node": "v22.23.5"
+    }
+  },
+  "device": {
+    "name": "iPhone 17",
+    "os_version": "iOS 26.2",
+    "details": {
+      "device_type": "com.apple.CoreSimulator.SimDeviceType.iPhone-17",
+      "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+      "build": "23C54"
+    }
+  },
+  "setup_ms": 13538,
+  "samples": [
+    {
+      "index": 0,
+      "ok": true,
+      "create_ms": 970,
+      "boot_ms": 160872,
+      "first_frame_ms": 184059,
+      "teardown_ms": 17636
+    },
+    {
+      "index": 1,
+      "ok": true,
+      "create_ms": 1129,
+      "boot_ms": 78504,
+      "first_frame_ms": 153356,
+      "teardown_ms": 9339
+    },
+    {
+      "index": 2,
+      "ok": true,
+      "create_ms": 542,
+      "boot_ms": 78861,
+      "first_frame_ms": 91059,
+      "teardown_ms": 18394
+    },
+    {
+      "index": 3,
+      "ok": true,
+      "create_ms": 531,
+      "boot_ms": 85499,
+      "first_frame_ms": 160044,
+      "teardown_ms": 5005
+    },
+    {
+      "index": 4,
+      "ok": true,
+      "create_ms": 596,
+      "boot_ms": 64977,
+      "first_frame_ms": 93172,
+      "teardown_ms": 50944
+    }
+  ]
+}
