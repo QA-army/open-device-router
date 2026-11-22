@@ -60,6 +60,10 @@ for (const file of walk(resultsDir)) {
   if (data.harness.commit === "uncommitted" || !data.harness.run_url) {
     problems.push(`${rel}: only results from a public CI run with a commit and run URL are published`);
   }
+  if (!data.samples.some((x) => x.ok)) {
+    // A run where nothing started cannot be told apart from a broken harness, so it is never published automatically.
+    problems.push(`${rel}: no sample started. Treated as a harness or environment fault; investigate before publishing`);
+  }
   results.push({ rel, ...data });
 }
 if (problems.length > 0) {
