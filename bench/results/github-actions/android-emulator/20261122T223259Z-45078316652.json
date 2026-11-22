@@ -1,0 +1,76 @@
+{
+  "schema": "odr.bench.result/v1",
+  "provider": "github-actions",
+  "target": "android-emulator",
+  "measurement": "cold-boot",
+  "started_at": "2026-11-22T22:32:59.029Z",
+  "finished_at": "2026-11-22T22:36:47.153Z",
+  "harness": {
+    "repository": "QA-army/opendevicerouter",
+    "commit": "42e23b6bde2fb0ced26572132dde77027215f437",
+    "script": "bench/runners/android-emulator.mjs",
+    "run_url": "https://github.com/QA-army/opendevicerouter/actions/runs/45078316652"
+  },
+  "environment": {
+    "runner_label": "ubuntu-24.04",
+    "image_os": "ubuntu24",
+    "image_version": "20261116.133.1",
+    "os": "linux",
+    "os_release": "7.0.0-1014-aws",
+    "arch": "x64",
+    "cpu_model": "Intel(R) Xeon(R) 6975P-C",
+    "cpu_count": 4,
+    "memory_gb": 15.3,
+    "tools": {
+      "emulator": "37.3.10",
+      "kvm": "present",
+      "node": "v22.23.5"
+    }
+  },
+  "device": {
+    "name": "pixel_6",
+    "os_version": "Android API 34",
+    "details": {
+      "system_image": "system-images;android-34;google_apis;x86_64",
+      "flags": "-no-window -no-audio -no-boot-anim -no-snapshot -wipe-data -gpu swiftshader_indirect"
+    }
+  },
+  "setup_ms": 50782,
+  "samples": [
+    {
+      "index": 0,
+      "ok": true,
+      "boot_ms": 32827,
+      "first_frame_ms": 33380,
+      "teardown_ms": 1148
+    },
+    {
+      "index": 1,
+      "ok": true,
+      "boot_ms": 33337,
+      "first_frame_ms": 34380,
+      "teardown_ms": 2036
+    },
+    {
+      "index": 2,
+      "ok": true,
+      "boot_ms": 33123,
+      "first_frame_ms": 33778,
+      "teardown_ms": 1615
+    },
+    {
+      "index": 3,
+      "ok": true,
+      "boot_ms": 33161,
+      "first_frame_ms": 33622,
+      "teardown_ms": 1770
+    },
+    {
+      "index": 4,
+      "ok": true,
+      "boot_ms": 33196,
+      "first_frame_ms": 33901,
+      "teardown_ms": 1578
+    }
+  ]
+}
