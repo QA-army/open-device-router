@@ -17,7 +17,7 @@ A coding agent in a Linux sandbox cannot boot an iOS Simulator, cannot open Safa
 | Ledger of connected providers and estimated free capacity left | Works. Debits are manual | `npm run odr -- status` |
 | Routing decision with a reason for every candidate | Works as a dry run | `npm run odr -- plan --surface ios-simulator --minutes 10` |
 | Commands to drive the chosen device with [agent-device](https://github.com/callstack/agent-device) | Printed, not executed | same as above |
-| Cold-boot benchmark on GitHub-hosted runners | Harness works. See [bench/RESULTS.md](bench/RESULTS.md) for what has run | Actions tab, `bench-github-runners` |
+| Cold-boot benchmark on GitHub-hosted runners | Works. First results committed by CI on 2026-11-22: [bench/RESULTS.md](bench/RESULTS.md). Small sample; read the limits in the method page | Actions tab, `bench-github-runners` |
 | `odr run`, `odr mcp`, `odr proxy`, SDKs, npm package | Not built | [ROADMAP.md](ROADMAP.md) |
 | Benchmarks of device clouds | Not run | [bench/METHODOLOGY.md](bench/METHODOLOGY.md) |
 

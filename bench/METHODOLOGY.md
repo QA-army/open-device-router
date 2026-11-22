@@ -34,6 +34,13 @@ Only the first two are measured today, and only on GitHub-hosted runners. Result
 - **Any device cloud.** The harness has only run on GitHub-hosted runners.
 - Network quality, input latency, or rendering correctness.
 
+## Limits of the results so far
+
+- Few runs, five samples per target each. Enough to show the harness works and to give a rough size, not enough to compare anything.
+- On the `macos-15` runner image the harness picked the newest installed runtime (iOS 26.2) while the selected Xcode was 16.4. The result file records both. Boot time with a matching Xcode may differ.
+- On iOS the screenshot after boot is slow and varies a lot, so `first_frame_ms` is much later than `boot_ms`. Both are reported.
+- The first workflow run (45075840572) is not in the results. Its Android job hit a harness bug, fixed in commit `5b5478d`: the emulator could not find the AVD that setup had created, so no sample started. Its iOS samples exist only as a workflow artifact.
+
 ## Statistics
 
 - Median uses the mean of the two middle values for an even count.

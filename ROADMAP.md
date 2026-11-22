@@ -14,7 +14,7 @@ Start with a small number of targets and a public benchmark, not a long list of 
 - Free-tier index generated from the registry.
 - Deterministic routing decision, local ledger, and guided connect as a CLI (`odr providers | show | validate | freshness | free-tiers | connect | status | plan | record`).
 - Thin agent-device adapter that prints the commands for the chosen provider.
-- Cold-boot benchmark harness for iOS Simulator and Android emulator, with a workflow that runs it on GitHub-hosted runners and commits the raw results.
+- Cold-boot benchmark harness for iOS Simulator and Android emulator, with a workflow that runs it on GitHub-hosted runners and commits the raw results. First results were committed on 2026-11-22.
 - Weekly check that opens an issue when entries are older than 45 days.
 
 ## Promotion gate

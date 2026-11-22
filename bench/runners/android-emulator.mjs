@@ -2,7 +2,7 @@
 // Cold boot of an Android emulator with wiped data. Needs the Android SDK and hardware acceleration (KVM on Linux).
 // Usage: node bench/runners/android-emulator.mjs [--samples 5] [--out-dir bench/tmp/out]
 import { execSync, spawn } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { environment, errorText, finish, harness, parseArgs, run, sleep, timed, tryRun, BOOT_TIMEOUT_MS, STEP_TIMEOUT_MS } from "./lib.mjs";
@@ -91,8 +91,15 @@ async function sample(index) {
 
 const started = new Date();
 const setupTime = await timed(setup);
-const emulatorVersion =
-  (await tryRun(emulator, ["-version"]))?.split("\n").find((l) => /version/i.test(l))?.trim().slice(0, 120) ?? "unknown";
+// `emulator -version` prints nothing useful on some hosts, so the package revision is read from the SDK.
+const emulatorVersion = (() => {
+  try {
+    const props = readFileSync(join(sdk, "emulator", "source.properties"), "utf8");
+    return props.match(/^Pkg\.Revision\s*=\s*(.+)$/m)?.[1].trim() ?? "unknown";
+  } catch {
+    return "unknown";
+  }
+})();
 const kvm = existsSync("/dev/kvm") ? "present" : "absent";
 const samples = [];
 for (let i = 0; i < args.samples; i += 1) {
