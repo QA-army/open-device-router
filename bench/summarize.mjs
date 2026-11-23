@@ -5,10 +5,12 @@ import { existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync 
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Ajv } from "ajv";
+import { parse as parseYaml } from "yaml";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const resultsDir = join(here, "results");
 const outFile = join(here, "RESULTS.md");
+const leaderboardFile = join(here, "leaderboard.json");
 const MIN_FOR_P95 = 20;
 
 function walk(dir) {
@@ -279,6 +281,165 @@ if (results.length === 0) {
 
 const md = lines.join("\n");
 
+// bench/leaderboard.json: the same results as RESULTS.md, as data for opendevicerouter.com/bench.
+// Rows are gated by each provider's registry policy. A provider's rows are listed only when its terms
+// allow publication (allowed_with_replication) or no third party is involved (not_applicable).
+// no_clause_found means we notify the vendor before listing; restricted means never listed;
+// unknown means the terms have not been read for this, so nothing is listed.
+// Exception: github-actions rows were already published in RESULTS.md before this gate existed; they
+// stay listed and are marked terms_checked: false until GitHub's terms are read for a benchmark clause.
+const PUBLISHED_BEFORE_GATE = new Set(["github-actions"]);
+const GATE = {
+  allowed_with_replication: "listed",
+  not_applicable: "listed",
+  no_clause_found: "notify_vendor_first",
+  restricted: "excluded",
+  unknown: "terms_unchecked",
+};
+const providers = readdirSync(join(here, "..", "registry", "providers"))
+  .filter((f) => f.endsWith(".yaml"))
+  .sort()
+  .map((f) => parseYaml(readFileSync(join(here, "..", "registry", "providers", f), "utf8")))
+  .map((p) => {
+    const terms = p.policy?.benchmark_publication ?? "unknown";
+    let status = GATE[terms] ?? "terms_unchecked";
+    if (status === "terms_unchecked" && PUBLISHED_BEFORE_GATE.has(p.id)) status = "listed";
+    return { id: p.id, name: p.name, benchmark_publication: terms, status, terms_checked: terms !== "unknown", terms_url: p.policy?.terms_url ?? null };
+  });
+const providerById = new Map(providers.map((p) => [p.id, p]));
+const rows = [];
+const withheld = new Map();
+const nn = (v) => (v === undefined ? null : v);
+function addRow(provider, row) {
+  const p = providerById.get(provider);
+  if (!p || p.status !== "listed") {
+    withheld.set(provider, (withheld.get(provider) ?? 0) + 1);
+    return;
+  }
+  rows.push({ provider, provider_name: p.name, terms_checked: p.terms_checked, ...row });
+}
+{
+  // SimBench, CI-verified: pooled per runner + target.
+  const g = new Map();
+  for (const r of ci) {
+    const k = [r.environment.runner_label, r.platform, targetOf(r)].join("|");
+    if (!g.has(k)) g.set(k, []);
+    g.get(k).push(r);
+  }
+  for (const k of [...g.keys()].sort()) {
+    const runs = g.get(k);
+    const [runner, platform, target] = k.split("|");
+    const s = simbenchSummary(runs.flatMap((r) => r.samples));
+    addRow("github-actions", {
+      benchmark: "simbench",
+      tier: "ci-verified",
+      platform,
+      where: runner,
+      target,
+      runs: runs.length,
+      cold: { n: s.cold.n, ok: s.cold.ok, median_run_to_first_frame_ms: s.cold.median_run_to_first_frame_ms, median_boot_ms: s.cold.median_boot_ms },
+      warm: { n: s.warm.n, ok: s.warm.ok, median_run_to_first_frame_ms: s.warm.median_run_to_first_frame_ms },
+      tap: { n: s.tap.n, median_ms: s.tap.median_ms },
+      parallel_max_n: (() => { const v = runs.map((r) => r.parallel?.max_ok_n).filter((x) => typeof x === "number"); return v.length ? Math.min(...v) : null; })(),
+      last_run: runs.map((r) => r.started_at).sort().at(-1),
+      run_urls: [...new Set(runs.map((r) => r.harness.run_url))].sort(),
+      raw: runs.map((r) => `bench/${r.rel.split("\\").join("/")}`),
+    });
+  }
+  // SimBench, self-reported: one row per file, never pooled or ranked against CI.
+  for (const r of [...self].sort((a, b) => a.started_at.localeCompare(b.started_at))) {
+    const e = r.environment;
+    addRow("local", {
+      benchmark: "simbench",
+      tier: "self-reported",
+      platform: r.platform,
+      where: `${e.chip}, ${Math.round(e.memory_gb)} GB${e.xcode ? `, ${e.xcode.replace(/ Build version.*/, "")}` : ""}`,
+      target: targetOf(r),
+      runs: 1,
+      cold: { n: r.summary.cold.n, ok: r.summary.cold.ok, median_run_to_first_frame_ms: r.summary.cold.median_run_to_first_frame_ms, median_boot_ms: r.summary.cold.median_boot_ms },
+      warm: { n: r.summary.warm.n, ok: r.summary.warm.ok, median_run_to_first_frame_ms: r.summary.warm.median_run_to_first_frame_ms },
+      tap: { n: r.summary.tap.n, median_ms: r.summary.tap.median_ms },
+      parallel_max_n: r.parallel?.max_ok_n ?? null,
+      last_run: r.started_at,
+      run_urls: [],
+      issue: r.submission.issue,
+      raw: [`bench/${r.rel.split("\\").join("/")}`],
+    });
+  }
+  // Sessions through the SDK (allocate to first frame, verified closure), pooled per provider + platform.
+  const gs = new Map();
+  for (const r of sessions) {
+    const k = [r.provider, r.platform, r.environment.runner_label].join("|");
+    if (!gs.has(k)) gs.set(k, []);
+    gs.get(k).push(r);
+  }
+  for (const k of [...gs.keys()].sort()) {
+    const runs = gs.get(k);
+    const [provider, platform, runner] = k.split("|");
+    const all = runs.flatMap((r) => r.samples);
+    const good = all.filter((x) => x.outcome === "ok" && x.closure === "verified");
+    const dev = all.find((x) => x.device?.os_version)?.device;
+    addRow(provider, {
+      benchmark: "session",
+      tier: "ci-verified",
+      platform,
+      where: runner,
+      target: dev ? `${dev.model ?? "?"}, ${platform === "ios" ? "iOS" : "Android"} ${dev.os_version ?? "?"}` : platform,
+      runs: runs.length,
+      cold: { n: all.length, ok: good.length, median_run_to_first_frame_ms: nn(median(good.map((x) => x.timings_ms.run_to_first_frame).filter((v) => v !== undefined))), median_boot_ms: null },
+      warm: null,
+      tap: null,
+      parallel_max_n: null,
+      last_run: runs.map((r) => r.started_at).sort().at(-1),
+      run_urls: [...new Set(runs.map((r) => r.harness.run_url))].sort(),
+      raw: runs.map((r) => `bench/${r.rel.split("\\").join("/")}`),
+    });
+  }
+}
+{
+  // Cold boot only (device, no app), pooled per provider + target + runner + device.
+  const gb = new Map();
+  for (const r of results) {
+    const k = [r.provider, r.target, r.environment.runner_label, `${r.device.name}, ${r.device.os_version}`].join("|");
+    if (!gb.has(k)) gb.set(k, []);
+    gb.get(k).push(r);
+  }
+  for (const k of [...gb.keys()].sort()) {
+    const runs = gb.get(k);
+    const [provider, target, runner, device] = k.split("|");
+    const all = runs.flatMap((r) => r.samples);
+    const ok = all.filter((x) => x.ok);
+    addRow(provider, {
+      benchmark: "cold_boot",
+      tier: "ci-verified",
+      platform: target.startsWith("ios") ? "ios" : "android",
+      where: runner,
+      target: device,
+      runs: runs.length,
+      cold: { n: all.length, ok: ok.length, median_run_to_first_frame_ms: null, median_boot_ms: nn(median(ok.map((x) => x.boot_ms))) },
+      warm: null,
+      tap: null,
+      parallel_max_n: null,
+      last_run: runs.map((r) => r.started_at).sort().at(-1),
+      run_urls: [...new Set(runs.map((r) => r.harness.run_url))].sort(),
+      raw: runs.map((r) => `bench/${r.rel.split("\\").join("/")}`),
+    });
+  }
+}
+const leaderboard = {
+  schema: "odr.leaderboard/v1",
+  generated_by: "bench/summarize.mjs from bench/results/",
+  method: "https://github.com/QA-army/open-device-router/blob/main/bench/METHODOLOGY.md",
+  data_through: [...sessions, ...simbench, ...results].map((r) => r.started_at).sort().at(-1) ?? null,
+  notes: [
+    "Medians of small samples. Rows are not a ranking of providers; tiers are not compared with each other.",
+    "ci-verified rows come from public GitHub Actions runs in QA-army/open-device-router; self-reported rows passed schema and consistency checks but nobody reproduced them.",
+  ],
+  rows,
+  providers: providers.map((p) => ({ ...p, rows_withheld: withheld.get(p.id) ?? 0 })),
+};
+const leaderboardJson = `${JSON.stringify(leaderboard, null, 2)}\n`;
+
 // README "Measured" block: generated from the same data, so the README never carries a typed number.
 const readmeFile = join(here, "..", "README.md");
 const block = ["<!-- MEASURED:START -->", "<!-- Generated by `npm run bench:summarize`. Do not edit. -->"];
@@ -315,6 +476,10 @@ if (process.argv.includes("--check")) {
     console.error("bench/RESULTS.md does not match bench/results/. Run `npm run bench:summarize`.");
     process.exit(1);
   }
+  if (!existsSync(leaderboardFile) || readFileSync(leaderboardFile, "utf8") !== leaderboardJson) {
+    console.error("bench/leaderboard.json does not match bench/results/. Run `npm run bench:summarize`.");
+    process.exit(1);
+  }
   if (newReadme !== readme) {
     console.error("README.md measured block does not match bench/results/. Run `npm run bench:summarize`.");
     process.exit(1);
@@ -322,6 +487,7 @@ if (process.argv.includes("--check")) {
   console.log(`bench/RESULTS.md matches ${results.length} result file(s)`);
 } else {
   writeFileSync(outFile, md);
+  writeFileSync(leaderboardFile, leaderboardJson);
   if (newReadme !== readme) writeFileSync(readmeFile, newReadme);
   console.log(`wrote bench/RESULTS.md from ${results.length} result file(s)`);
 }

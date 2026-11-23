@@ -149,3 +149,19 @@ Other rules:
 ## Corrections
 
 If a number looks wrong, open an issue with the result file name. Result files are not edited. A wrong run is removed in a pull request that says why, and RESULTS.md is regenerated.
+
+## Leaderboard data and the publication gate
+
+`bench/leaderboard.json` (`odr.leaderboard/v1`) carries the same numbers as RESULTS.md as data, for the /bench page on opendevicerouter.com. `npm run bench:summarize` writes it and `npm run bench:check` fails if it does not match `bench/results/`, so no number on the page is typed by hand.
+
+Rows are gated by the provider's `policy.benchmark_publication` in `registry/providers/`:
+
+| Registry value | Leaderboard |
+| --- | --- |
+| `allowed_with_replication` | listed, with replication details (method, raw files, run URLs) |
+| `not_applicable` (local devices) | listed |
+| `no_clause_found` | withheld until the vendor has been told and has had time to answer |
+| `restricted` | never listed |
+| `unknown` | withheld until the terms are read |
+
+GitHub-hosted runner rows were published before this gate existed. They stay listed with `terms_checked: false` until GitHub's terms are read for a benchmark clause. The `providers` list in the file shows each provider's status and how many rows were withheld. A row is not a ranking; tiers are never compared with each other.

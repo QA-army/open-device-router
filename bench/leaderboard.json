@@ -1,0 +1,317 @@
+{
+  "schema": "odr.leaderboard/v1",
+  "generated_by": "bench/summarize.mjs from bench/results/",
+  "method": "https://github.com/QA-army/open-device-router/blob/main/bench/METHODOLOGY.md",
+  "data_through": "2026-11-23T03:19:11.698Z",
+  "notes": [
+    "Medians of small samples. Rows are not a ranking of providers; tiers are not compared with each other.",
+    "ci-verified rows come from public GitHub Actions runs in QA-army/open-device-router; self-reported rows passed schema and consistency checks but nobody reproduced them."
+  ],
+  "rows": [
+    {
+      "provider": "github-actions",
+      "provider_name": "GitHub-hosted runners",
+      "terms_checked": false,
+      "benchmark": "session",
+      "tier": "ci-verified",
+      "platform": "android",
+      "where": "ubuntu-24.04",
+      "target": "sdk_gphone64_x86_64, Android 14",
+      "runs": 6,
+      "cold": {
+        "n": 18,
+        "ok": 6,
+        "median_run_to_first_frame_ms": 47311,
+        "median_boot_ms": null
+      },
+      "warm": null,
+      "tap": null,
+      "parallel_max_n": null,
+      "last_run": "2026-11-23T03:13:44.593Z",
+      "run_urls": [
+        "https://github.com/QA-army/open-device-router/actions/runs/45094507461",
+        "https://github.com/QA-army/open-device-router/actions/runs/45096049615",
+        "https://github.com/QA-army/open-device-router/actions/runs/45097304037",
+        "https://github.com/QA-army/open-device-router/actions/runs/45099915095",
+        "https://github.com/QA-army/open-device-router/actions/runs/45102486809",
+        "https://github.com/QA-army/open-device-router/actions/runs/45104480552"
+      ],
+      "raw": [
+        "bench/results/github-actions/session/android/2026-11-23T01-38-02-375Z.json",
+        "bench/results/github-actions/session/android/2026-11-23T01-54-27-312Z.json",
+        "bench/results/github-actions/session/android/2026-11-23T02-02-53-142Z.json",
+        "bench/results/github-actions/session/android/2026-11-23T02-35-40-875Z.json",
+        "bench/results/github-actions/session/android/2026-11-23T02-58-16-503Z.json",
+        "bench/results/github-actions/session/android/2026-11-23T03-19-43-333Z.json"
+      ]
+    },
+    {
+      "provider": "github-actions",
+      "provider_name": "GitHub-hosted runners",
+      "terms_checked": false,
+      "benchmark": "session",
+      "tier": "ci-verified",
+      "platform": "ios",
+      "where": "macos-15",
+      "target": "iPhone 17, iOS 26.0.1",
+      "runs": 6,
+      "cold": {
+        "n": 18,
+        "ok": 13,
+        "median_run_to_first_frame_ms": 160162,
+        "median_boot_ms": null
+      },
+      "warm": null,
+      "tap": null,
+      "parallel_max_n": null,
+      "last_run": "2026-11-23T03:19:11.698Z",
+      "run_urls": [
+        "https://github.com/QA-army/open-device-router/actions/runs/45091307145",
+        "https://github.com/QA-army/open-device-router/actions/runs/45094507461",
+        "https://github.com/QA-army/open-device-router/actions/runs/45096049615",
+        "https://github.com/QA-army/open-device-router/actions/runs/45097304037",
+        "https://github.com/QA-army/open-device-router/actions/runs/45102486809",
+        "https://github.com/QA-army/open-device-router/actions/runs/45104480552"
+      ],
+      "raw": [
+        "bench/results/github-actions/session/ios/2026-11-23T01-08-41-288Z.json",
+        "bench/results/github-actions/session/ios/2026-11-23T01-40-20-690Z.json",
+        "bench/results/github-actions/session/ios/2026-11-23T01-52-46-904Z.json",
+        "bench/results/github-actions/session/ios/2026-11-23T02-19-38-545Z.json",
+        "bench/results/github-actions/session/ios/2026-11-23T03-09-46-610Z.json",
+        "bench/results/github-actions/session/ios/2026-11-23T03-39-28-128Z.json"
+      ]
+    },
+    {
+      "provider": "github-actions",
+      "provider_name": "GitHub-hosted runners",
+      "terms_checked": false,
+      "benchmark": "cold_boot",
+      "tier": "ci-verified",
+      "platform": "android",
+      "where": "ubuntu-24.04",
+      "target": "pixel_6, Android API 34",
+      "runs": 2,
+      "cold": {
+        "n": 10,
+        "ok": 10,
+        "median_run_to_first_frame_ms": null,
+        "median_boot_ms": 35502
+      },
+      "warm": null,
+      "tap": null,
+      "parallel_max_n": null,
+      "last_run": "2026-11-22T22:32:59.029Z",
+      "run_urls": [
+        "https://github.com/QA-army/opendevicerouter/actions/runs/45076956078",
+        "https://github.com/QA-army/opendevicerouter/actions/runs/45078316652"
+      ],
+      "raw": [
+        "bench/results/github-actions/android-emulator/20261122T221823Z-45076956078.json",
+        "bench/results/github-actions/android-emulator/20261122T223259Z-45078316652.json"
+      ]
+    },
+    {
+      "provider": "github-actions",
+      "provider_name": "GitHub-hosted runners",
+      "terms_checked": false,
+      "benchmark": "cold_boot",
+      "tier": "ci-verified",
+      "platform": "ios",
+      "where": "macos-15",
+      "target": "iPhone 17, iOS 26.2",
+      "runs": 2,
+      "cold": {
+        "n": 10,
+        "ok": 10,
+        "median_run_to_first_frame_ms": null,
+        "median_boot_ms": 78683
+      },
+      "warm": null,
+      "tap": null,
+      "parallel_max_n": null,
+      "last_run": "2026-11-22T22:32:52.683Z",
+      "run_urls": [
+        "https://github.com/QA-army/opendevicerouter/actions/runs/45076956078",
+        "https://github.com/QA-army/opendevicerouter/actions/runs/45078316652"
+      ],
+      "raw": [
+        "bench/results/github-actions/ios-simulator/20261122T221825Z-45076956078.json",
+        "bench/results/github-actions/ios-simulator/20261122T223252Z-45078316652.json"
+      ]
+    }
+  ],
+  "providers": [
+    {
+      "id": "anchor-browser",
+      "name": "Anchor Browser",
+      "benchmark_publication": "unknown",
+      "status": "terms_unchecked",
+      "terms_checked": false,
+      "terms_url": null,
+      "rows_withheld": 0
+    },
+    {
+      "id": "appetize",
+      "name": "Appetize",
+      "benchmark_publication": "unknown",
+      "status": "terms_unchecked",
+      "terms_checked": false,
+      "terms_url": "https://appetize.io/terms",
+      "rows_withheld": 0
+    },
+    {
+      "id": "aws-device-farm",
+      "name": "AWS Device Farm",
+      "benchmark_publication": "allowed_with_replication",
+      "status": "listed",
+      "terms_checked": true,
+      "terms_url": "https://aws.amazon.com/service-terms/",
+      "rows_withheld": 0
+    },
+    {
+      "id": "azure-playwright-workspaces",
+      "name": "Azure Playwright Workspaces",
+      "benchmark_publication": "unknown",
+      "status": "terms_unchecked",
+      "terms_checked": false,
+      "terms_url": null,
+      "rows_withheld": 0
+    },
+    {
+      "id": "browser-use-cloud",
+      "name": "Browser Use Cloud",
+      "benchmark_publication": "unknown",
+      "status": "terms_unchecked",
+      "terms_checked": false,
+      "terms_url": null,
+      "rows_withheld": 0
+    },
+    {
+      "id": "browserbase",
+      "name": "Browserbase",
+      "benchmark_publication": "unknown",
+      "status": "terms_unchecked",
+      "terms_checked": false,
+      "terms_url": null,
+      "rows_withheld": 0
+    },
+    {
+      "id": "browserstack",
+      "name": "BrowserStack",
+      "benchmark_publication": "restricted",
+      "status": "excluded",
+      "terms_checked": true,
+      "terms_url": "https://www.browserstack.com/terms",
+      "rows_withheld": 0
+    },
+    {
+      "id": "cloudflare-browser-rendering",
+      "name": "Cloudflare Browser Rendering",
+      "benchmark_publication": "allowed_with_replication",
+      "status": "listed",
+      "terms_checked": true,
+      "terms_url": "https://www.cloudflare.com/terms/",
+      "rows_withheld": 0
+    },
+    {
+      "id": "genymotion-saas",
+      "name": "Genymotion SaaS",
+      "benchmark_publication": "unknown",
+      "status": "terms_unchecked",
+      "terms_checked": false,
+      "terms_url": "https://www.genymotion.com/genymotion-saas/",
+      "rows_withheld": 0
+    },
+    {
+      "id": "github-actions",
+      "name": "GitHub-hosted runners",
+      "benchmark_publication": "unknown",
+      "status": "listed",
+      "terms_checked": false,
+      "terms_url": "https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features",
+      "rows_withheld": 0
+    },
+    {
+      "id": "hyperbrowser",
+      "name": "Hyperbrowser",
+      "benchmark_publication": "unknown",
+      "status": "terms_unchecked",
+      "terms_checked": false,
+      "terms_url": null,
+      "rows_withheld": 0
+    },
+    {
+      "id": "kernel",
+      "name": "Kernel",
+      "benchmark_publication": "unknown",
+      "status": "terms_unchecked",
+      "terms_checked": false,
+      "terms_url": null,
+      "rows_withheld": 0
+    },
+    {
+      "id": "limrun",
+      "name": "Limrun",
+      "benchmark_publication": "no_clause_found",
+      "status": "notify_vendor_first",
+      "terms_checked": true,
+      "terms_url": "https://limrun.com/terms",
+      "rows_withheld": 0
+    },
+    {
+      "id": "local",
+      "name": "Local devices",
+      "benchmark_publication": "not_applicable",
+      "status": "listed",
+      "terms_checked": true,
+      "terms_url": null,
+      "rows_withheld": 0
+    },
+    {
+      "id": "revyl",
+      "name": "Revyl",
+      "benchmark_publication": "no_clause_found",
+      "status": "notify_vendor_first",
+      "terms_checked": true,
+      "terms_url": "https://revyl.com/terms",
+      "rows_withheld": 0
+    },
+    {
+      "id": "sauce-labs",
+      "name": "Sauce Labs",
+      "benchmark_publication": "unknown",
+      "status": "terms_unchecked",
+      "terms_checked": false,
+      "terms_url": "https://saucelabs.com/doc/terms-of-service",
+      "rows_withheld": 0
+    },
+    {
+      "id": "steel",
+      "name": "Steel",
+      "benchmark_publication": "unknown",
+      "status": "terms_unchecked",
+      "terms_checked": false,
+      "terms_url": null,
+      "rows_withheld": 0
+    },
+    {
+      "id": "testingbot",
+      "name": "TestingBot",
+      "benchmark_publication": "unknown",
+      "status": "terms_unchecked",
+      "terms_checked": false,
+      "terms_url": null,
+      "rows_withheld": 0
+    },
+    {
+      "id": "testmu-ai",
+      "name": "TestMu AI (formerly LambdaTest)",
+      "benchmark_publication": "unknown",
+      "status": "terms_unchecked",
+      "terms_checked": false,
+      "terms_url": null,
+      "rows_withheld": 0
+    }
+  ]
+}
