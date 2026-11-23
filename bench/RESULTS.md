@@ -35,13 +35,15 @@ All runs to date, pooled. p95 is shown only from 20 successful samples up. "Fail
 
 | Provider | Target | Runner | Device | Runs | Samples | Failed boots | Boot median | Boot p95 | First frame median | Teardown median | Last run |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| github-actions | android-emulator | ubuntu-24.04 | pixel_6, Android API 34 | 2 | 10 | 0 (0.0%) | 35.5 s | n < 20 | 36.6 s | 1.6 s | 2026-11-22 |
-| github-actions | ios-simulator | macos-15 | iPhone 17, iOS 26.2 | 2 | 10 | 0 (0.0%) | 78.7 s | n < 20 | 120.0 s | 14.0 s | 2026-11-22 |
+| github-actions | android-emulator | ubuntu-24.04 | pixel_6, Android API 34 | 3 | 15 | 0 (0.0%) | 33.2 s | n < 20 | 33.9 s | 1.6 s | 2026-11-23 |
+| github-actions | ios-simulator | macos-15 | iPhone 17, iOS 26.2 | 3 | 15 | 0 (0.0%) | 85.5 s | n < 20 | 133.2 s | 9.3 s | 2026-11-23 |
 
 ## Runs
 
 | Started (UTC) | Provider | Target | Image | Samples | Failed | Boot min | Boot median | Boot max | Setup | Commit | Run | Raw |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-23 18:23 | github-actions | ios-simulator | macos15 20261118.0550.1 | 5 | 0 | 81.3 s | 88.9 s | 125.4 s | 57.4 s | `a0f09d9` | [run](https://github.com/QA-army/open-device-router/actions/runs/45237856410) | [json](results/github-actions/ios-simulator/20261123T182334Z-45237856410.json) |
+| 2026-11-23 18:23 | github-actions | android-emulator | ubuntu24 20261116.376.1 | 5 | 0 | 32.4 s | 32.8 s | 33.3 s | 51.5 s | `a0f09d9` | [run](https://github.com/QA-army/open-device-router/actions/runs/45237856410) | [json](results/github-actions/android-emulator/20261123T182331Z-45237856410.json) |
 | 2026-11-22 22:32 | github-actions | android-emulator | ubuntu24 20261116.133.1 | 5 | 0 | 32.8 s | 33.2 s | 33.3 s | 50.8 s | `42e23b6` | [run](https://github.com/QA-army/opendevicerouter/actions/runs/45078316652) | [json](results/github-actions/android-emulator/20261122T223259Z-45078316652.json) |
 | 2026-11-22 22:32 | github-actions | ios-simulator | macos15 20261118.0550.1 | 5 | 0 | 68.6 s | 76.7 s | 95.9 s | 8.9 s | `42e23b6` | [run](https://github.com/QA-army/opendevicerouter/actions/runs/45078316652) | [json](results/github-actions/ios-simulator/20261122T223252Z-45078316652.json) |
 | 2026-11-22 22:18 | github-actions | ios-simulator | macos15 20261118.0550.1 | 5 | 0 | 65.0 s | 78.9 s | 160.9 s | 13.5 s | `5b5478d` | [run](https://github.com/QA-army/opendevicerouter/actions/runs/45076956078) | [json](results/github-actions/ios-simulator/20261122T221825Z-45076956078.json) |
