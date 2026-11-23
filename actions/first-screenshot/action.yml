@@ -53,6 +53,10 @@ inputs:
     description: Branch the PNGs are pushed to so the comment can show them
     required: false
     default: odr-screenshots
+  artifact-name:
+    description: Artifact name for the PNGs and shot.json. Set a unique one per matrix job.
+    required: false
+    default: ""
   github-token:
     description: Token for the comment and the screenshots branch
     required: false
@@ -175,7 +179,7 @@ runs:
     - uses: actions/upload-artifact@v7
       if: always() && steps.shot.outputs.dir != ''
       with:
-        name: odr-first-screenshot-${{ inputs.platform }}-${{ github.run_attempt }}
+        name: ${{ inputs.artifact-name || format('odr-first-screenshot-{0}', inputs.platform) }}
         path: ${{ steps.shot.outputs.dir }}
         if-no-files-found: ignore
 

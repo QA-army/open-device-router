@@ -46,4 +46,5 @@ jobs:
           project: app/${{ matrix.app.project }}
           scheme: ${{ matrix.app.scheme }}
           comment: "false"
+          artifact-name: odr-first-screenshot-${{ matrix.app.name }}
       - run: echo "${{ matrix.app.name }} ok=${{ steps.shot.outputs.ok }} launch_ms=${{ steps.shot.outputs.launch-to-first-frame-ms }}"
