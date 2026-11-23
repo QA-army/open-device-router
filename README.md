@@ -15,7 +15,7 @@ One call gets your agent or test runner an iOS Simulator or Android device from 
 
 | Where | Device | Sessions (OK + closed) | Run to first frame, median | Screenshot misses while held | Last run |
 | --- | --- | --- | --- | --- | --- |
-| GitHub-hosted runner (ubuntu-24.04) | sdk_gphone64_x86_64, Android 14 | 0 of 9 across 3 run(s) | n/a | 0 of 34 | 2026-11-23 |
+| GitHub-hosted runner (ubuntu-24.04) | sdk_gphone64_x86_64, Android 14 | 0 of 12 across 4 run(s) | n/a | 0 of 34 | 2026-11-23 |
 | GitHub-hosted runner (macos-15) | iPhone 17, iOS 26.0.1 | 8 of 12 across 4 run(s) | 154.8 s | 0 of 64 | 2026-11-23 |
 
 Small samples; read the limits in the method page. Cloud providers are not in this table until their terms allow publication.

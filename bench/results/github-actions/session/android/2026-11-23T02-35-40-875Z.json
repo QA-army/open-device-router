@@ -1,0 +1,196 @@
+{
+  "schema": "odr.bench.session/v1",
+  "provider": "github-actions",
+  "platform": "android",
+  "measurement": "session",
+  "odr_version": "0.1.0",
+  "started_at": "2026-11-23T02:25:52.485Z",
+  "finished_at": "2026-11-23T02:35:40.875Z",
+  "harness": {
+    "repository": "QA-army/open-device-router",
+    "commit": "6fc54ea160368ef81f677e5fab525a25598c1a0c",
+    "script": "bench/runners/session.mjs",
+    "run_url": "https://github.com/QA-army/open-device-router/actions/runs/45099915095"
+  },
+  "environment": {
+    "runner_label": "ubuntu-24.04",
+    "image_os": "ubuntu24",
+    "image_version": "20261116.133.1",
+    "os": "linux",
+    "os_release": "7.0.0-1014-aws",
+    "arch": "x64",
+    "cpu_model": "Intel(R) Xeon(R) 6975P-C",
+    "cpu_count": 4,
+    "memory_gb": 15.3,
+    "tools": {
+      "node": "v22.23.5",
+      "runner_prepared": "no",
+      "agent-device": "0.21.41",
+      "@appetize/cli": "not installed"
+    }
+  },
+  "request": {
+    "provider": "github-actions",
+    "platform": "android",
+    "build_format": "apk",
+    "needs": [
+      "screenshot",
+      "tap"
+    ],
+    "minutes": 6,
+    "require_control": true,
+    "spend": {
+      "mode": "free-only"
+    }
+  },
+  "build": {
+    "format": "apk",
+    "file": "odr-fixture.apk"
+  },
+  "samples": [
+    {
+      "n": 1,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 105,
+        "allocate": 21555,
+        "install": 486,
+        "launch": 1397,
+        "teardown": 4071,
+        "session": 0
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "max_gap_ms": 0
+      },
+      "receipt_id": "r_0c5c9baa5b582df2",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "android",
+        "kind": "emulator",
+        "model": "Android SDK built for x86_64",
+        "os_version": "14",
+        "provider_device": "odr_pixel_6",
+        "device_id": "emulator-5554",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 0,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 143,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed",
+      "error": {
+        "code": "first_frame_timeout",
+        "message": "no usable screenshot: frame not usable: flat colour 0,0,0 at 1080x2400"
+      }
+    },
+    {
+      "n": 2,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 99,
+        "allocate": 3739,
+        "install": 252,
+        "launch": 1156,
+        "teardown": 4068,
+        "session": 0
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "max_gap_ms": 0
+      },
+      "receipt_id": "r_e263ccdfe5e95427",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "android",
+        "kind": "emulator",
+        "model": "Android SDK built for x86_64",
+        "os_version": "14",
+        "provider_device": "odr_pixel_6",
+        "device_id": "emulator-5554",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 0,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 143,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed",
+      "error": {
+        "code": "first_frame_timeout",
+        "message": "no usable screenshot: frame not usable: flat colour 0,0,0 at 1080x2400"
+      }
+    },
+    {
+      "n": 3,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 96,
+        "allocate": 3673,
+        "install": 270,
+        "launch": 1093,
+        "teardown": 4068,
+        "session": 0
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "max_gap_ms": 0
+      },
+      "receipt_id": "r_2494115add479277",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "android",
+        "kind": "emulator",
+        "model": "Android SDK built for x86_64",
+        "os_version": "14",
+        "provider_device": "odr_pixel_6",
+        "device_id": "emulator-5554",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 0,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 143,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed",
+      "error": {
+        "code": "first_frame_timeout",
+        "message": "no usable screenshot: frame not usable: flat colour 0,0,0 at 1080x2400"
+      }
+    }
+  ]
+}
