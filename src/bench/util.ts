@@ -19,13 +19,31 @@ export const FRAME_TIMEOUT_MS = 60_000;
 export const BOOT_FRAME_TIMEOUT_MS = 180_000;
 
 export async function sh(cmd: string, args: string[], opts: { timeout?: number; env?: NodeJS.ProcessEnv } = {}): Promise<string> {
-  const { stdout } = await execFileP(cmd, args, { timeout: opts.timeout ?? STEP_TIMEOUT_MS, maxBuffer: 64 * 1024 * 1024, env: opts.env ?? process.env });
-  return String(stdout).trim();
+  const timeout = opts.timeout ?? STEP_TIMEOUT_MS;
+  try {
+    const { stdout } = await execFileP(cmd, args, { timeout, maxBuffer: 64 * 1024 * 1024, env: opts.env ?? process.env });
+    return String(stdout).trim();
+  } catch (e) {
+    throw withTimeoutNote(e, timeout);
+  }
 }
 
 export async function shBuffer(cmd: string, args: string[], timeout = 60_000): Promise<Buffer> {
-  const { stdout } = await execFileP(cmd, args, { timeout, maxBuffer: 64 * 1024 * 1024, encoding: "buffer" });
-  return stdout as Buffer;
+  try {
+    const { stdout } = await execFileP(cmd, args, { timeout, maxBuffer: 64 * 1024 * 1024, encoding: "buffer" });
+    return stdout as Buffer;
+  } catch (e) {
+    throw withTimeoutNote(e, timeout);
+  }
+}
+
+/** execFile kills the child on timeout and reports only "Command failed"; say so in the message. */
+export function withTimeoutNote(e: unknown, timeoutMs: number): unknown {
+  const err = e as Error & { killed?: boolean; signal?: string | null };
+  if (err instanceof Error && err.killed && err.signal) {
+    err.message = `timed out after ${Math.round(timeoutMs / 1000)} s: ${err.message}`;
+  }
+  return e;
 }
 
 export async function trySh(cmd: string, args: string[], opts: { timeout?: number } = {}): Promise<string | undefined> {

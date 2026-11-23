@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { crc32, encodePng, renderCard } from "../src/bench/card.js";
 import { isAppFrame, isFixtureFirstFrame, isFixtureTapped, redShare } from "../src/bench/frames.js";
 import { PARALLEL_RULE, SIMBENCH_SCHEMA, summarise, type Sample, type SimbenchResult } from "../src/bench/simbench.js";
-import { median } from "../src/bench/util.js";
+import { median, sh } from "../src/bench/util.js";
 import { validateSimbench } from "../src/bench/validate.js";
 import { decodePng, isUsableFrame } from "../src/session/png.js";
 
@@ -141,4 +141,8 @@ test("renderCard writes a 1200x630 PNG that is not a flat colour", () => {
   assert.equal(f.width, 1200);
   assert.equal(f.height, 630);
   assert.ok(isUsableFrame(png));
+});
+
+test("timeout kills are labeled in the error message", async () => {
+  await assert.rejects(sh("sleep", ["5"], { timeout: 200 }), /timed out after 0 s: Command failed: sleep 5/);
 });
