@@ -65,6 +65,36 @@ A session file where no sample reached a device is treated like a cold-boot run 
 - Android session runs before the ATD image change (45094507461 and 45096049615) produced no usable sample: first a frame check that was stricter than this document, then taps blocked by a SystemUI "not responding" dialog. Run 45099915095 tried the aosp_atd image, which returns black screenshots.
 - The first workflow run (45075840572) is not in the results. Its Android job hit a harness bug, fixed in commit `5b5478d`: the emulator could not find the AVD that setup had created, so no sample started. Its iOS samples exist only as a workflow artifact.
 
+## SimBench (`odr bench`, schema `simbench/v1`)
+
+A benchmark anyone can run on their own Mac or Linux box with `npx opendevicerouter bench`, and that CI runs weekly on GitHub-hosted runner images (`bench-simbench-matrix`). It drives the platform tools directly (`xcrun simctl`; Android `emulator` and `adb`), not the session SDK, so it needs no agent-device install and measures the machine rather than a driver.
+
+Definitions. Every time is milliseconds from the start of the sample unless the field ends in `_step_ms`, which is the step alone.
+
+| Field | Cold sample (iOS) | Cold sample (Android) | Warm sample |
+| --- | --- | --- | --- |
+| start | before `simctl create` | before the emulator process starts | before install, on a booted device with the fixture uninstalled (uninstall not timed) |
+| `boot_ms` | `simctl bootstatus -b` returned | `sys.boot_completed` is 1 | not recorded |
+| `first_screenshot_ms` | first screenshot that is not one flat colour | same | not recorded |
+| `run_to_first_frame_ms` | first screenshot where at least half of a 32x32 grid is the fixture's starting red | same | same |
+| `tap_to_change_ms` | not measured (simctl has no input) | `adb shell input tap` at the centre until the red share is below 20% | Android only |
+
+- Fixture: the apps in `bench/fixtures/`, built from source on the machine before the first sample. Build time is recorded as `method.fixture_build_excluded_ms` and is not in any sample.
+- Cold, iOS: a new simulator per sample, deleted afterwards. Device type is the newest plain "iPhone N" for the runtime unless `--device-type` is given.
+- Cold, Android: without `--avd`, odr creates an AVD named `odr-simbench` from the newest installed system image (CI pins `system-images;android-34;google_apis;x86_64`) and starts it with `-wipe-data -no-snapshot-load`. With `--avd`, the user's AVD is started with `-no-snapshot-load -no-snapshot-save` and its data is kept, which is a cold boot of an already set-up device. `method.cold` says which.
+- Screenshots are polled every 250 ms, so any frame time can be late by up to one screenshot round trip plus 250 ms.
+- Parallel (`--parallel 1,2,4,8`, iOS only in v1): at each level N, N cold samples start at the same time. A level passes when every device reaches the fixture's first frame. Levels run in ascending order. The run stops at the first level where any device fails, or where the median time to first frame exceeds 2x the N=1 median. `max_ok_n` is the highest level that passed both checks. This rule was written before any parallel number was published.
+- Cost (CI only): the median cold run to first frame times the runner's published per-minute rate ([GitHub runner pricing](https://docs.github.com/en/billing/reference/actions-runner-pricing), `actions_macos` $0.062, `actions_linux` $0.006). It is an estimate: GitHub bills whole minutes per job, and public repositories run standard runners at no charge.
+- Environment recorded: OS version and build, chip, machine model, CPU count, RAM, Xcode version, power source, how many simulators were already booted, runner label and image. Not recorded: hostname, username, serial number, device UDID. The schema is closed, so a file with extra environment fields fails validation.
+
+Tiers. `bench/RESULTS.md` keeps them in separate tables and never ranks one against another.
+
+| Tier | Where it comes from | Checks |
+| --- | --- | --- |
+| `ci-verified` | `bench-simbench-matrix` in this repository | schema, summary recomputed from samples, run URL in this repository |
+| `self-reported` | a "SimBench result" issue, turned into a pull request by `simbench-intake` and merged by a maintainer | schema, summary recomputed from samples, consent checkbox. Not reproduced |
+| `vendor-submitted` | a provider running SimBench on its own service | not accepted yet; needs a published procedure first |
+
 ## Statistics
 
 - Median uses the mean of the two middle values for an even count.
@@ -78,7 +108,15 @@ Every result file records the repository, commit, runner script, workflow run UR
 
 On GitHub-hosted runners: fork the repository and run the `bench-github-runners` workflow.
 
-On your own machine:
+On your own machine, SimBench:
+
+```sh
+npx opendevicerouter bench                 # iOS on macOS, Android elsewhere; 3 cold + 3 warm
+npx opendevicerouter bench --parallel 1,2,4
+npx opendevicerouter bench submit simbench-results/<file>.json   # optional: opens a public issue
+```
+
+The older cold-boot runners:
 
 ```sh
 # macOS with Xcode
@@ -88,7 +126,7 @@ node bench/runners/ios-simulator.mjs --samples 5
 node bench/runners/android-emulator.mjs --samples 5
 ```
 
-Local runs write to `bench/tmp/out/`, which is ignored by git. `npm run bench:check` rejects result files that do not come from a public CI run with a commit and run URL, so local numbers cannot end up in RESULTS.md.
+Local runs write to `bench/tmp/out/`, which is ignored by git. `npm run bench:check` rejects cold-boot and session result files that do not come from a public CI run with a commit and run URL, so local numbers from those runners cannot end up in RESULTS.md. SimBench results from your own machine reach RESULTS.md only through a "SimBench result" issue, in the self-reported table.
 
 ## Rules for publishing a provider's numbers
 

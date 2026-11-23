@@ -1,0 +1,188 @@
+name: bench-simbench-matrix
+
+# SimBench (`odr bench`) across GitHub-hosted runner images: cold and warm sessions to the fixture's
+# first frame, plus a parallel ramp on macOS. Results are ci-verified because they carry this run's URL.
+# See bench/METHODOLOGY.md, section "SimBench".
+
+on:
+  workflow_dispatch:
+    inputs:
+      cold:
+        description: Cold samples per target (1-5)
+        default: "3"
+        required: true
+      warm:
+        description: Warm samples per target (0-5)
+        default: "3"
+        required: true
+      parallel:
+        description: Parallel levels on macOS, comma list (empty to skip)
+        default: "1,2,4"
+        required: false
+      publish:
+        description: Commit results to main (only from main)
+        type: boolean
+        default: true
+  schedule:
+    - cron: "29 8 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bench-simbench-matrix-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  COLD: ${{ github.event.inputs.cold || '3' }}
+  WARM: ${{ github.event.inputs.warm || '3' }}
+  PARALLEL: ${{ github.event_name == 'schedule' && '1,2,4' || github.event.inputs.parallel }}
+  PRICING_URL: https://docs.github.com/en/billing/reference/actions-runner-pricing
+
+jobs:
+  ios:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-26, macos-15-intel]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    env:
+      ODR_BENCH_RUNNER_LABEL: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Check inputs
+        run: |
+          [[ "$COLD" =~ ^[1-5]$ ]] || { echo "cold must be 1-5"; exit 1; }
+          [[ "$WARM" =~ ^[0-5]$ ]] || { echo "warm must be 0-5"; exit 1; }
+          [[ -z "$PARALLEL" || "$PARALLEL" =~ ^[0-9]+(,[0-9]+)*$ ]] || { echo "parallel must be a comma list"; exit 1; }
+      - run: npm ci
+      - name: Two newest iOS runtimes on this image
+        id: runtimes
+        run: |
+          list=$(xcrun simctl list runtimes -j | node -e '
+            const r = JSON.parse(require("fs").readFileSync(0, "utf8")).runtimes
+              .filter((x) => x.isAvailable && x.platform === "iOS")
+              .sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }));
+            console.log(r.slice(0, 2).map((x) => x.identifier).join(" "));')
+          echo "Runtimes: $list"
+          echo "list=$list" >> "$GITHUB_OUTPUT"
+      - name: SimBench
+        env:
+          RUNTIMES: ${{ steps.runtimes.outputs.list }}
+        run: |
+          status=0
+          for rt in $RUNTIMES; do
+            out="bench/tmp/out/simbench/ci/${ODR_BENCH_RUNNER_LABEL}/ios/${rt##*.}"
+            args=(--platform ios --runtime "$rt" --cold "$COLD" --warm "$WARM" --out "$out"
+                  --cost-rate 0.062 --cost-sku actions_macos --cost-source "$PRICING_URL")
+            [ -n "$PARALLEL" ] && args+=(--parallel "$PARALLEL")
+            npm run -s odr -- bench "${args[@]}" || status=1
+          done
+          mkdir -p bench/tmp/cards
+          find bench/tmp/out -name '*.png' -exec mv {} bench/tmp/cards/ \;
+          exit $status
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: simbench-${{ matrix.runner }}
+          path: bench/tmp/out
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: cards-${{ matrix.runner }}
+          path: bench/tmp/cards
+          if-no-files-found: ignore
+
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      ODR_BENCH_RUNNER_LABEL: ubuntu-24.04
+      ODR_SIMBENCH_IMAGE: system-images;android-34;google_apis;x86_64
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Check inputs
+        run: |
+          [[ "$COLD" =~ ^[1-5]$ ]] || { echo "cold must be 1-5"; exit 1; }
+          [[ "$WARM" =~ ^[0-5]$ ]] || { echo "warm must be 0-5"; exit 1; }
+      - run: npm ci
+      - name: Allow the runner user to use KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install the pinned system image (setup, not timed)
+        run: |
+          sdkm="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$sdkm" --licenses > /dev/null || true
+          "$sdkm" "platform-tools" "emulator" "build-tools;34.0.0" "platforms;android-34" "$ODR_SIMBENCH_IMAGE" > /dev/null
+      - name: SimBench
+        run: |
+          status=0
+          npm run -s odr -- bench --platform android --headless --cold "$COLD" --warm "$WARM" \
+            --out bench/tmp/out/simbench/ci/ubuntu-24.04/android/api34 \
+            --cost-rate 0.006 --cost-sku actions_linux --cost-source "$PRICING_URL" || status=1
+          mkdir -p bench/tmp/cards
+          find bench/tmp/out -name '*.png' -exec mv {} bench/tmp/cards/ \;
+          exit $status
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: simbench-android
+          path: bench/tmp/out
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: cards-android
+          path: bench/tmp/cards
+          if-no-files-found: ignore
+
+  publish:
+    needs: [ios, android]
+    if: always() && github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event.inputs.publish == 'true')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: simbench-*
+          path: bench/results
+          merge-multiple: true
+      - name: Rebuild RESULTS.md from the result files
+        run: node bench/summarize.mjs --drop-rejected
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bench/results bench/RESULTS.md README.md
+          if git diff --cached --quiet; then
+            echo "No new result files."
+            exit 0
+          fi
+          git commit -m "bench: SimBench results from run ${GITHUB_RUN_ID}"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1

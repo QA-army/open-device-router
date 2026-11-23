@@ -6,6 +6,7 @@ import { isSurface, SURFACES, type Allowance, type Provider, type Surface } from
 import { ageInDays, findProvider, loadRegistry } from "../registry/load.js";
 import { freeTiersMarkdown } from "./free-tiers.js";
 import { keysMarkdown } from "./keys.js";
+import { cmdBench } from "./bench-command.js";
 import { cmdDoctor, cmdForget, cmdKeys, cmdReconcile, cmdRun, cmdSessions, cmdSweep, REQUEST_OPTIONS, requestFromFlags } from "./session-commands.js";
 import { VERSION } from "../version.js";
 
@@ -20,6 +21,11 @@ Sessions
   odr sweep                        stop devices left by dead or lost workers
   odr session forget <id>          mark a reservation closed after checking the provider by hand
   odr reconcile <id>               pull the provider's own usage figure (Appetize today)
+
+Benchmark
+  odr bench [--platform ios|android] [--cold 3] [--warm 3] [--parallel 1,2,4,8] [--submit]
+                                   SimBench: cold and warm sessions on this machine, a JSON result
+                                   and a share card. \`odr bench help\` for details
 
 Keys and accounts
   odr keys [id] [--all]            where to get each key, env var names, gh secret lines
@@ -408,6 +414,8 @@ async function main(): Promise<void> {
       return cmdKeysDoc(rest);
     case "doctor":
       return cmdDoctor(loadValid());
+    case "bench":
+      return cmdBench(rest);
     case "mcp":
     case "proxy":
       fail(`\`${command}\` is not implemented yet. See ROADMAP.md.`, 2);
