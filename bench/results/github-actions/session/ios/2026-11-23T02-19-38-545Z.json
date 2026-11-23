@@ -1,0 +1,177 @@
+{
+  "schema": "odr.bench.session/v1",
+  "provider": "github-actions",
+  "platform": "ios",
+  "measurement": "session",
+  "odr_version": "0.1.0",
+  "started_at": "2026-11-23T01:56:33.180Z",
+  "finished_at": "2026-11-23T02:19:38.545Z",
+  "harness": {
+    "repository": "QA-army/open-device-router",
+    "commit": "0f1960fefe8698abff83ab94ca7370ec1e7899cb",
+    "script": "bench/runners/session.mjs",
+    "run_url": "https://github.com/QA-army/open-device-router/actions/runs/45097304037"
+  },
+  "environment": {
+    "runner_label": "macos-15",
+    "image_os": "macos15",
+    "image_version": "20261118.0550.1",
+    "os": "darwin",
+    "os_release": "24.6.0",
+    "arch": "arm64",
+    "cpu_model": "Apple M1 (Virtual)",
+    "cpu_count": 3,
+    "memory_gb": 7,
+    "tools": {
+      "node": "v22.23.5",
+      "agent-device": "0.21.41",
+      "@appetize/cli": "not installed"
+    }
+  },
+  "request": {
+    "provider": "github-actions",
+    "platform": "ios",
+    "model": "iPhone",
+    "build_format": "app",
+    "needs": [
+      "screenshot",
+      "tap"
+    ],
+    "minutes": 6,
+    "require_control": true,
+    "spend": {
+      "mode": "free-only"
+    }
+  },
+  "build": {
+    "format": "app",
+    "file": "OdrFixture.app"
+  },
+  "samples": [
+    {
+      "n": 1,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 126,
+        "teardown": 120,
+        "session": 0
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "max_gap_ms": 0
+      },
+      "receipt_id": "r_ca3265ccfad6d24b",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-macos15-iphone17-26-2",
+        "surface": "ios-simulator"
+      },
+      "device": null,
+      "health": {
+        "heartbeats": 0,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed",
+      "error": {
+        "code": "allocate_failed",
+        "message": "Simulator did not finish booting within the startup budget"
+      }
+    },
+    {
+      "n": 2,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 240,
+        "allocate": 11865,
+        "install": 17616,
+        "teardown": 95114,
+        "session": 0
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "max_gap_ms": 0
+      },
+      "receipt_id": "r_65c06ddc059cb927",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-macos15-iphone17-26-2",
+        "surface": "ios-simulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "ios",
+        "kind": "simulator",
+        "model": "iPhone 17",
+        "os_version": "26.0.1",
+        "provider_device": "iPhone 17",
+        "device_id": "97452E4E-610F-48A2-A819-FDA0A45017D2",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 0,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "unverified",
+      "closure_method": "driver",
+      "closure_detail": "daemon shutdown pending",
+      "error": {
+        "code": "allocate_failed",
+        "message": "Daemon request timed out"
+      },
+      "sweep": [
+        {
+          "action": "force_stop_local_devices",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 198,
+        "teardown": 39,
+        "session": 0
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "max_gap_ms": 0
+      },
+      "receipt_id": "r_1ed510011da25ac4",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-macos15-iphone17-26-2",
+        "surface": "ios-simulator"
+      },
+      "device": null,
+      "health": {
+        "heartbeats": 0,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed",
+      "error": {
+        "code": "allocate_failed",
+        "message": "ios device 97452E4E-610F-48A2-A819-FDA0A45017D2 is owned by session \"odr-65c06ddc\" in workspace \"/Users/runner/work/open-device-router/open-device-router\"."
+      }
+    }
+  ]
+}

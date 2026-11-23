@@ -1,0 +1,201 @@
+{
+  "schema": "odr.bench.session/v1",
+  "provider": "github-actions",
+  "platform": "android",
+  "measurement": "session",
+  "odr_version": "0.1.0",
+  "started_at": "2026-11-23T01:57:08.470Z",
+  "finished_at": "2026-11-23T02:02:53.142Z",
+  "harness": {
+    "repository": "QA-army/open-device-router",
+    "commit": "0f1960fefe8698abff83ab94ca7370ec1e7899cb",
+    "script": "bench/runners/session.mjs",
+    "run_url": "https://github.com/QA-army/open-device-router/actions/runs/45097304037"
+  },
+  "environment": {
+    "runner_label": "ubuntu-24.04",
+    "image_os": "ubuntu24",
+    "image_version": "20261116.376.1",
+    "os": "linux",
+    "os_release": "7.0.0-1017-azure",
+    "arch": "x64",
+    "cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "cpu_count": 4,
+    "memory_gb": 15.6,
+    "tools": {
+      "node": "v22.23.5",
+      "agent-device": "0.21.41",
+      "@appetize/cli": "not installed"
+    }
+  },
+  "request": {
+    "provider": "github-actions",
+    "platform": "android",
+    "build_format": "apk",
+    "needs": [
+      "screenshot",
+      "tap"
+    ],
+    "minutes": 6,
+    "require_control": true,
+    "spend": {
+      "mode": "free-only"
+    }
+  },
+  "build": {
+    "format": "apk",
+    "file": "odr-fixture.apk"
+  },
+  "samples": [
+    {
+      "n": 1,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 159,
+        "allocate": 63683,
+        "install": 5217,
+        "launch": 22230,
+        "first_frame": 2087,
+        "run_to_first_frame": 93379,
+        "teardown": 8829,
+        "session": 72488
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 11,
+        "screenshots_failed": 0,
+        "max_gap_ms": 6120
+      },
+      "receipt_id": "r_f572b745c42dcb79",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "android",
+        "kind": "emulator",
+        "model": "sdk_gphone64_x86_64",
+        "os_version": "14",
+        "provider_device": "odr_pixel_6",
+        "device_id": "emulator-5554",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 3,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 16,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed",
+      "error": {
+        "code": "COMMAND_FAILED",
+        "message": "Android system dialog is blocking press: Application Not Responding: com.android.systemui (package com.android.systemui)."
+      }
+    },
+    {
+      "n": 2,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 142,
+        "allocate": 10202,
+        "install": 4023,
+        "launch": 6480,
+        "first_frame": 627,
+        "run_to_first_frame": 21475,
+        "teardown": 8770,
+        "session": 69496
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 11,
+        "screenshots_failed": 0,
+        "max_gap_ms": 6101
+      },
+      "receipt_id": "r_36e5c6a69f2afc5a",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "android",
+        "kind": "emulator",
+        "model": "sdk_gphone64_x86_64",
+        "os_version": "14",
+        "provider_device": "odr_pixel_6",
+        "device_id": "emulator-5554",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 3,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 16,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed",
+      "error": {
+        "code": "COMMAND_FAILED",
+        "message": "Android system dialog is blocking press: Application Not Responding: com.android.systemui (package com.android.systemui)."
+      }
+    },
+    {
+      "n": 3,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 90,
+        "allocate": 7062,
+        "install": 923,
+        "launch": 6266,
+        "first_frame": 409,
+        "run_to_first_frame": 14751,
+        "teardown": 8785,
+        "session": 73075
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 12,
+        "screenshots_failed": 0,
+        "max_gap_ms": 5335
+      },
+      "receipt_id": "r_832bb4d60a2ad91e",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "android",
+        "kind": "emulator",
+        "model": "sdk_gphone64_x86_64",
+        "os_version": "14",
+        "provider_device": "odr_pixel_6",
+        "device_id": "emulator-5554",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 3,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 17,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed",
+      "error": {
+        "code": "COMMAND_FAILED",
+        "message": "Android system dialog is blocking press: Application Not Responding: com.android.systemui (package com.android.systemui)."
+      }
+    }
+  ]
+}

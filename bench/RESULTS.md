@@ -10,11 +10,13 @@ Full lifecycle through the SDK: reserve, allocate, install the fixture build, la
 
 | Provider | Platform | Device | Runs | Samples | OK + closed | Run to first frame | Allocate | Install | Launch | First frame | Teardown | Dropped | Screenshot misses | Tap changed frame | Last run |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| github-actions | android | sdk_gphone64_x86_64, 14 | 2 | 6 | 0 (0.0%) | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 of 0 | 0 of 0 | 2026-11-23 |
-| github-actions | ios | iPhone 17, 26.0.1 | 3 | 9 | 8 (88.9%) | 154.8 s | 112.7 s | 21.8 s | 17.8 s | 3.3 s | 8.4 s | 0 | 0 of 64 | 6 of 8 | 2026-11-23 |
+| github-actions | android | sdk_gphone64_x86_64, 14 | 3 | 9 | 0 (0.0%) | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 of 34 | 0 of 0 | 2026-11-23 |
+| github-actions | ios | iPhone 17, 26.0.1 | 4 | 12 | 8 (66.7%) | 154.8 s | 112.7 s | 21.8 s | 17.8 s | 3.3 s | 8.4 s | 0 | 0 of 64 | 6 of 8 | 2026-11-23 |
 
 | Started (UTC) | Provider | Platform | Samples | OK + closed | Run to first frame (min / median / max) | Commit | Run | Raw |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-23 01:57 | github-actions | android | 3 | 0 | n/a / n/a / n/a | `0f1960f` | [run](https://github.com/QA-army/open-device-router/actions/runs/45097304037) | [json](results/github-actions/session/android/2026-11-23T02-02-53-142Z.json) |
+| 2026-11-23 01:56 | github-actions | ios | 3 | 0 | n/a / n/a / n/a | `0f1960f` | [run](https://github.com/QA-army/open-device-router/actions/runs/45097304037) | [json](results/github-actions/session/ios/2026-11-23T02-19-38-545Z.json) |
 | 2026-11-23 01:43 | github-actions | android | 3 | 0 | n/a / n/a / n/a | `c8525da` | [run](https://github.com/QA-army/open-device-router/actions/runs/45096049615) | [json](results/github-actions/session/android/2026-11-23T01-54-27-312Z.json) |
 | 2026-11-23 01:43 | github-actions | ios | 3 | 2 | 41.3 s / 76.5 s / 111.7 s | `c8525da` | [run](https://github.com/QA-army/open-device-router/actions/runs/45096049615) | [json](results/github-actions/session/ios/2026-11-23T01-52-46-904Z.json) |
 | 2026-11-23 01:26 | github-actions | android | 3 | 0 | n/a / n/a / n/a | `9dfe80c` | [run](https://github.com/QA-army/open-device-router/actions/runs/45094507461) | [json](results/github-actions/session/android/2026-11-23T01-38-02-375Z.json) |
