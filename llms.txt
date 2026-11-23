@@ -9,12 +9,14 @@
 - Run a session around a command: `odr run --platform android --build app.apk --minutes 10 -- <cmd>` (exit 0 ok, 3 refused, 4 failed, 5 closure unverified)
 - SDK: `import { allocate, withSession, attach } from "opendevicerouter"`; Midscene: `import { midsceneInterface } from "opendevicerouter/midscene"`
 - Clean up dead sessions: `odr sweep`
+- MCP (read-only, stdio): `odr mcp` with tools plan_route, read_ledger, list_providers
 
 ## Docs
 
 - [README](https://github.com/QA-army/open-device-router/blob/main/README.md)
 - [AGENTS.md](https://github.com/QA-army/open-device-router/blob/main/AGENTS.md): rules for agents changing the repo
 - [Keys](https://github.com/QA-army/open-device-router/blob/main/docs/keys.md)
+- [Agents without a Mac](https://github.com/QA-army/open-device-router/blob/main/docs/agents-without-a-mac.md): routes to iOS/Android from a Linux sandbox, and MCP setup
 - [Free tiers](https://github.com/QA-army/open-device-router/blob/main/docs/free-tiers.md): vendor-documented, with sources and dates
 - [Receipt schema](https://github.com/QA-army/open-device-router/blob/main/schema/receipt.schema.json)
 - [Benchmark results](https://github.com/QA-army/open-device-router/blob/main/bench/RESULTS.md) and [method](https://github.com/QA-army/open-device-router/blob/main/bench/METHODOLOGY.md)

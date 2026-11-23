@@ -157,6 +157,7 @@ Cloud results are published only when the provider's terms allow it; until then 
 ## For agents
 
 - Operating guide: [AGENTS.md](AGENTS.md) · Machine summary: [llms.txt](llms.txt) · Keys: [docs/keys.md](docs/keys.md) or `odr keys --all`
+- MCP: `odr mcp` is a read-only stdio server with `plan_route`, `read_ledger` and `list_providers`. Setup and the no-Mac routes: [docs/agents-without-a-mac.md](docs/agents-without-a-mac.md).
 - Machine-readable output: `odr plan --json`, `odr run --json`, `odr providers --json`, `odr status --json`.
 - Receipt schema: [schema/receipt.schema.json](schema/receipt.schema.json).
 - Always release: use `withSession`, or `odr run -- <cmd>`, and run `odr sweep` at the start of CI jobs.
