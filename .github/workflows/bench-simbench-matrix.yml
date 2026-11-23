@@ -25,18 +25,25 @@ on:
         default: true
   schedule:
     - cron: "29 8 * * 1"
+  # Smoke run with one cold and one warm sample when SimBench itself changes. Never publishes.
+  pull_request:
+    paths:
+      - "src/bench/**"
+      - "src/cli/bench-command.ts"
+      - "bench/fixtures/**"
+      - ".github/workflows/bench-simbench-matrix.yml"
 
 permissions:
   contents: read
 
 concurrency:
   group: bench-simbench-matrix-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  COLD: ${{ github.event.inputs.cold || '3' }}
-  WARM: ${{ github.event.inputs.warm || '3' }}
-  PARALLEL: ${{ github.event_name == 'schedule' && '1,2,4' || github.event.inputs.parallel }}
+  COLD: ${{ github.event_name == 'pull_request' && '1' || github.event.inputs.cold || '3' }}
+  WARM: ${{ github.event_name == 'pull_request' && '1' || github.event.inputs.warm || '3' }}
+  PARALLEL: ${{ github.event_name == 'schedule' && '1,2,4' || github.event_name == 'pull_request' && '1,2' || github.event.inputs.parallel }}
   PRICING_URL: https://docs.github.com/en/billing/reference/actions-runner-pricing
 
 jobs:
