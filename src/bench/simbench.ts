@@ -8,7 +8,7 @@ import { android, ensureSimbenchAvd, findSdk, listAvds, startEmulator, waitForBo
 import { benchEnvironment, benchHarness, type BenchEnvironment } from "./env.js";
 import { isFixtureFirstFrame, isFixtureTapped } from "./frames.js";
 import { ios, pickIosTarget, type IosTarget } from "./ios.js";
-import { errorText, FRAME_TIMEOUT_MS, median, now, packageRoot, since, sleep } from "./util.js";
+import { BOOT_FRAME_TIMEOUT_MS, errorText, FRAME_TIMEOUT_MS, median, now, packageRoot, since, sleep } from "./util.js";
 
 export const SIMBENCH_SCHEMA = "simbench/v1";
 export const FIXTURE_ID = "dev.odr.fixture";
@@ -130,7 +130,7 @@ async function iosColdSample(target: IosTarget, app: string, index: number, labe
     s.create_step_ms = since(t0);
     await ios.bootWait(udid);
     s.boot_ms = since(t0);
-    await pollFrame(() => ios.screenshot(udid!), (png) => frameProblem(png) === undefined);
+    await pollFrame(() => ios.screenshot(udid!), (png) => frameProblem(png) === undefined, BOOT_FRAME_TIMEOUT_MS);
     s.first_screenshot_ms = since(t0);
     let t = now();
     await ios.install(udid, app);
@@ -160,7 +160,7 @@ async function iosWarmSamples(target: IosTarget, app: string, count: number, log
   const out: Sample[] = [];
   try {
     await ios.bootWait(udid);
-    await pollFrame(() => ios.screenshot(udid), (png) => frameProblem(png) === undefined);
+    await pollFrame(() => ios.screenshot(udid), (png) => frameProblem(png) === undefined, BOOT_FRAME_TIMEOUT_MS);
     for (let i = 0; i < count; i += 1) {
       const s: Sample = { kind: "warm", index: i, ok: false, tap_to_change_ms: null };
       await ios.terminate(udid, FIXTURE_ID);
@@ -245,7 +245,7 @@ async function androidColdSample(sdk: AndroidSdk, avd: string, wipe: boolean, ap
     emu = startEmulator(sdk, avd, { port: ANDROID_PORT, wipe, headless });
     await waitForBoot(sdk, emu);
     s.boot_ms = since(t0);
-    await pollFrame(() => android.screenshot(sdk, emu!.serial), (png) => frameProblem(png) === undefined);
+    await pollFrame(() => android.screenshot(sdk, emu!.serial), (png) => frameProblem(png) === undefined, BOOT_FRAME_TIMEOUT_MS);
     s.first_screenshot_ms = since(t0);
     let t = now();
     await android.install(sdk, emu.serial, apk);
@@ -276,7 +276,7 @@ async function androidWarmSamples(sdk: AndroidSdk, avd: string, apk: string, cou
   const out: Sample[] = [];
   try {
     await waitForBoot(sdk, emu);
-    await pollFrame(() => android.screenshot(sdk, emu.serial), (png) => frameProblem(png) === undefined);
+    await pollFrame(() => android.screenshot(sdk, emu.serial), (png) => frameProblem(png) === undefined, BOOT_FRAME_TIMEOUT_MS);
     for (let i = 0; i < count; i += 1) {
       const s: Sample = { kind: "warm", index: i, ok: false, tap_to_change_ms: null };
       await android.uninstall(sdk, emu.serial, FIXTURE_ID);
