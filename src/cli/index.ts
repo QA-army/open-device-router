@@ -34,6 +34,8 @@ Registry and planning
   odr plan (same request flags as run) [--json]   dry run: which provider, which profile, why
   odr status [--json]              connected providers and free capacity left
   odr record <id> --surface <s> --minutes <n>     manual debit for sessions odr did not run
+  odr mcp                          MCP server on stdio for coding agents (read-only: plan_route,
+                                   read_ledger, list_providers). See docs/agents-without-a-mac.md
   odr validate | odr freshness | odr free-tiers [--write|--check] | odr keys-doc [--write|--check]
 
 Default spend policy is free-only: odr refuses rather than pick capacity that could bill.
@@ -409,6 +411,7 @@ async function main(): Promise<void> {
     case "doctor":
       return cmdDoctor(loadValid());
     case "mcp":
+      return (await import("../mcp/server.js")).serveStdio();
     case "proxy":
       fail(`\`${command}\` is not implemented yet. See ROADMAP.md.`, 2);
     default:

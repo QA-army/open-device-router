@@ -51,13 +51,14 @@ Benchmarks across 4-6 device clouds (item 1.4) make the announcement stronger an
 - **Acceptance evidence:** for each supported provider, a recorded comparison of the provider's figure and the ledger after a known session.
 - **Release gate:** only documented APIs and CLIs are used.
 
-### 1.3 `odr mcp`
+### 1.3 `odr mcp` (built 2026-11-23; acceptance pending)
 
 - **Outcome:** a stdio MCP server with three tools: plan a route, read the ledger, list providers. Device actions stay in agent-device's own MCP server.
 - **Non-goals:** proxying or wrapping device actions.
 - **Dependencies:** 1.1.
 - **Acceptance evidence:** a transcript of one coding agent asking for a route and then driving the device through agent-device.
 - **Release gate:** tool names and schemas are documented and versioned.
+- **Evidence so far:** unit tests and a stdio test in `test/mcp.test.ts`; `tools/list` and `tools/call plan_route` through the official MCP Inspector CLI. The coding-agent transcript is still missing. Tools and schemas: [docs/agents-without-a-mac.md](docs/agents-without-a-mac.md).
 
 ### 1.4 Benchmarks on the first device clouds (**needs accounts**)
 
