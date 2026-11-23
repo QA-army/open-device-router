@@ -52,7 +52,8 @@
           "device": { "type": ["object", "null"] },
           "route": { "type": ["object", "null"] },
           "receipt_id": { "type": "string" },
-          "error": { "type": "object" }
+          "error": { "type": "object" },
+          "sweep": { "type": "array" }
         }
       }
     }

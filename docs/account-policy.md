@@ -10,8 +10,8 @@ OpenDeviceRouter routes sessions to accounts you already own. It is not a way to
 4. **No account creation by the tool.** `odr connect` prints the signup link and a checklist. It does not submit signup forms.
 5. **No rotation, no disposable identities.** No throwaway emails, no virtual phone numbers, no new account when a trial ends.
 6. **No pooled or shared keys.** The project does not hold provider credentials for users and does not offer a shared key.
-7. **Free only, and stop at the limit.** The router has no paid path. When the ledger shows an allowance is used up, the request is refused.
-8. **Credentials stay where you keep them.** `odr` checks that an environment variable is set. It does not read the value, write it to disk, or send it anywhere.
+7. **Free only by default, and stop at the limit.** In `free-only` mode the router refuses when an allowance is used up, when overage behavior is unknown, or when the allowance bills and has not been reconciled with the provider in the last 24 hours. Paid capacity is used only with an explicit per-session budget (`--budget-usd`) and the connection's monthly cap (`--max-usd-month`).
+8. **Credentials stay where you keep them.** `odr` checks that an environment variable is set and passes it, through the environment, to the provider's own CLI or SDK. It does not write it to disk, log it, put it in a receipt, or send it anywhere other than that provider.
 9. **Follow each provider's terms.** Where an entry records a restriction, such as no third-party access or no public benchmarks, the tool and the project follow it.
 
 ## What an agent may do
@@ -22,7 +22,7 @@ A coding agent does not create the account, accept terms for you, or supply an e
 
 ## Limits of the ledger
 
-The ledger is an estimate built from sessions recorded on your machine. The provider's own meter is the authority. Some providers move an account to paid billing automatically when a trial limit is passed; the entry's notes say so where the vendor documents it. Where a provider offers a spend cap or a no-overage setting, turn it on.
+The ledger counts sessions odr ran (and manual `odr record` debits), with reservations taken under a file lock so parallel workers cannot spend the same minutes. It is still an estimate unless reconciled: `odr reconcile <id>` pulls the provider's own figure where a usage API exists (Appetize today). The provider's own meter is the authority. Some providers move an account to paid billing automatically when a trial limit is passed; the entry's notes say so where the vendor documents it. Where a provider offers a spend cap or a no-overage setting, turn it on.
 
 ## Why these rules
 

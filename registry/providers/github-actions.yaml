@@ -61,10 +61,11 @@ profiles:
     kind: emulator
     model: pixel_6
     os: '14'
+    provider_device: odr_pixel_6
     evidence: observed
     observed_at: '2026-11-22'
     source: https://github.com/QA-army/open-device-router/actions/runs/45078316652
-    notes: ubuntu-24.04 runner with KVM, system image android-34 google_apis x86_64.
+    notes: ubuntu-24.04 runner with KVM, system image android-34 google_apis x86_64, AVD created by the job as odr_pixel_6 (see .github/workflows/bench-sessions.yml).
 control:
   driver: agent-device
   package: agent-device

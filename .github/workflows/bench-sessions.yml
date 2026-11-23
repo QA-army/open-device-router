@@ -73,7 +73,7 @@ jobs:
 
   ios-github:
     runs-on: macos-15
-    timeout-minutes: 60
+    timeout-minutes: 90
     env:
       ODR_BENCH_RUNNER_LABEL: macos-15
     steps:
@@ -87,6 +87,10 @@ jobs:
         run: '[[ "$SAMPLES" =~ ^([1-9]|10)$ && "$HOLD" =~ ^[0-9]+$ && "$HOLD" -le 600 ]] || { echo "bad inputs"; exit 1; }'
       - name: Build the fixture app
         run: bench/fixtures/ios/build.sh bench/tmp/fixtures
+      - name: Pre-build agent-device's iOS runner, then shut every simulator down (not timed)
+        run: |
+          npx --no-install agent-device prepare --platform ios --device "iPhone 17" --timeout 1500000 || echo "prepare failed; the benchmark will include runner preparation"
+          xcrun simctl shutdown all || true
       - name: Session benchmark
         run: node bench/runners/session.mjs --provider github-actions --platform ios --model iPhone --build bench/tmp/fixtures/OdrFixture.app --app-id dev.odr.fixture --samples "$SAMPLES" --hold "$HOLD" --out-dir bench/tmp/out
       - uses: actions/upload-artifact@v7

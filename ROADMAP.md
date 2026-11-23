@@ -13,7 +13,12 @@ Start with a small number of targets and a public benchmark, not a long list of 
 - Provider registry with 19 entries, JSON Schema, and policy checks in CI.
 - Free-tier index generated from the registry.
 - Deterministic routing decision, local ledger, and guided connect as a CLI (`odr providers | show | validate | freshness | free-tiers | connect | status | plan | record`).
-- Thin agent-device adapter that prints the commands for the chosen provider.
+- Session lifecycle (v0.1.0): `odr run` and the Node SDK (`allocate`, `withSession`, `attach`) reserve under a lock, allocate, install, launch, wait for the first usable frame, heartbeat with screenshot probes, release on every exit path, verify closure, and write an `odr.receipt/v1`. `odr sweep` cleans up after dead workers.
+- Drivers: agent-device (local, GitHub runners, Limrun, Revyl, AWS Device Farm) and the Appetize CLI. Midscene interface adapter.
+- Router v2: platform, model, OS range, build format, inputs, keys, parallel caps, device profiles; free-only and budget spend modes.
+- Appetize usage reconciliation (`odr reconcile appetize`).
+- `odr keys`, `odr doctor`, generated `docs/keys.md`, `llms.txt`.
+- Session benchmark runner with fixture apps built from source, and a workflow for GitHub runners plus key-gated cloud jobs.
 - Cold-boot benchmark harness for iOS Simulator and Android emulator, with a workflow that runs it on GitHub-hosted runners and commits the raw results. First results were committed on 2026-11-22.
 - Weekly check that opens an issue when entries are older than 45 days.
 
@@ -21,15 +26,16 @@ Start with a small number of targets and a public benchmark, not a long list of 
 
 The project is announced once all of these are true:
 
-1. `bench/RESULTS.md` has committed results for both targets on GitHub-hosted runners, from at least three separate runs.
-2. A new user can go from `git clone` to a routed, driven session on one free cloud provider in under 10 minutes, shown by a recorded run on a clean machine.
-3. `docs/free-tiers.md` has been re-checked within 14 days.
+1. `bench/RESULTS.md` has session results (Run to first frame, verified closure) for iOS and Android on GitHub-hosted runners, from at least three separate runs.
+2. At least one free cloud provider has completed a driven session through `odr run` with verified closure, from a public CI run. Its numbers are published only if its terms allow; otherwise the receipt is kept as a CI artifact and the README says the path works without quoting numbers.
+3. A new user can go from `git clone` to a driven session in under 10 minutes, shown by a recorded run on a clean machine.
+4. `docs/free-tiers.md` has been re-checked within 14 days.
 
-Results from a device cloud (item 1.4) make the announcement stronger and do not block it. Until the gate is met the README keeps its pre-release notice.
+Benchmarks across 4-6 device clouds (item 1.4) make the announcement stronger and do not block it. Until the gate is met the README keeps its pre-release notice.
 
 ## Stage 1: v0.1, deterministic switch and ledger
 
-### 1.1 `odr run` for the first targets
+### 1.1 `odr run` for the first targets (built; per-provider acceptance pending)
 
 - **Outcome:** `odr run --surface ios-simulator --minutes 10 -- <command>` picks a provider, runs `agent-device connect`, runs the caller's command with the session set, disconnects, and debits the ledger with the measured duration.
 - **Non-goals:** paid routing, retries on another provider, browser clouds.
@@ -37,7 +43,7 @@ Results from a device cloud (item 1.4) make the announcement stronger and do not
 - **Acceptance evidence:** a CI job or recorded terminal session per provider showing connect, one snapshot, disconnect, and the ledger entry; unit tests for the ledger debit on success, failure, and interrupt.
 - **Release gate:** the session is always disconnected, including on failure and Ctrl-C, verified per provider.
 
-### 1.2 Ledger reconciliation
+### 1.2 Ledger reconciliation (Appetize built; others need a documented usage API)
 
 - **Outcome:** `odr status --reconcile` reads usage from providers that expose it and shows the difference from the local estimate.
 - **Non-goals:** storing credentials; reading provider dashboards through a browser.
@@ -61,7 +67,7 @@ Results from a device cloud (item 1.4) make the announcement stronger and do not
 - **Acceptance evidence:** result files from public CI runs; the date each provider was contacted, recorded in the pull request.
 - **Release gate:** `policy.benchmark_publication` is not `restricted` or `unknown` for the provider.
 
-### 1.5 Session-survival benchmark (**open**)
+### 1.5 Session-survival benchmark (runner built; results pending)
 
 - **Outcome:** hold a session for a fixed time, check it every 30 seconds, and report how many sessions ended early.
 - **Non-goals:** measuring app behavior.
@@ -103,7 +109,7 @@ Results from a device cloud (item 1.4) make the announcement stronger and do not
 - **Acceptance evidence:** replay tests showing the same telemetry gives the same decision; a documented rule for telling infrastructure faults from test failures.
 - **Release gate:** the stage 1 order is still used when there is no telemetry.
 
-Also in this stage: a TypeScript SDK over the same router, then Python and Go once the request and decision shapes have been stable for one release.
+Also in this stage: Python and Go SDKs once the request, session and receipt shapes have been stable for one release. The Node SDK shipped in v0.1.0.
 
 ## Stage 3: v1.0, intent router
 
@@ -124,4 +130,4 @@ Also in this stage: a TypeScript SDK over the same router, then Python and Go on
 
 - Automated account creation, account rotation, or shared keys. See `docs/account-policy.md`.
 - Hosting devices.
-- A paid path that spends without a budget the user set in advance. If paid routing is ever added, it is opt-in, capped, and off by default.
+- A paid path that spends without a budget the user set in advance. Budget mode is opt-in, capped per session and per month, and off by default.

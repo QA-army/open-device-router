@@ -110,6 +110,13 @@ for (let n = 1; n <= opt.samples; n += 1) {
     sample.error = { code: e?.code ?? "error", message: String(e?.message ?? e).slice(0, 500) };
   }
   samples.push(sample);
+  // A sample that could not prove closure must not poison the next one. On a CI runner the bench
+  // owns the machine, so it force-stops local devices and records that it had to.
+  if (sample.closure && sample.closure !== "verified" && opt.provider === "github-actions") {
+    const forced = opt.platform === "ios" ? await tryRun("xcrun", ["simctl", "shutdown", "all"]) : await tryRun("adb", ["emu", "kill"]);
+    sample.sweep = [{ action: "force_stop_local_devices", ok: forced !== undefined }];
+    await sleep(5000);
+  }
   console.error(`[sample ${n}] ${sample.outcome} run_to_first_frame=${sample.timings_ms.run_to_first_frame ?? "-"}ms closure=${sample.closure ?? "-"}`);
 }
 

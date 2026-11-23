@@ -6,7 +6,7 @@ The benchmark answers three questions for each place a session can run:
 2. How often does it fail to get there?
 3. Does the free allowance behave the way the vendor's page says?
 
-Only the first two are measured today, and only on GitHub-hosted runners. Results are in [RESULTS.md](RESULTS.md), which is generated from the raw files in [results/](results/).
+Only the first two are measured today, and published only for GitHub-hosted runners. Results are in [RESULTS.md](RESULTS.md), which is generated from the raw files in [results/](results/).
 
 ## What is measured
 
@@ -26,10 +26,31 @@ Only the first two are measured today, and only on GitHub-hosted runners. Result
 
 **A run where nothing started.** If no sample in a run starts, the run is not published. From the outside, a total outage and a broken harness look the same, so the runner exits with an error, keeps the file as a `rejected-*` workflow artifact for diagnosis, and `npm run bench:check` refuses such a file. This means the published failed-boot rate cannot show a total outage. If one happens, it is recorded by hand in an issue with the rejected file attached.
 
+**Session.** `bench/runners/session.mjs` runs the same lifecycle as `odr run`, through the public SDK, against a fixture app built from source in the same job (`bench/fixtures/`). Timings come from the session receipt, so production and the benchmark report the same fields.
+
+| Field (receipt `timings_ms`) | From | To |
+| --- | --- | --- |
+| `queue` | `allocate()` called | capacity reserved in the ledger |
+| `upload` | reservation | provider has the build (upload-before-allocation providers only) |
+| `provider_queue` | provider asked for a device | provider reports the device assigned, where it reports it |
+| `allocate` | provider asked for a device | device ready to accept commands |
+| `install` | install started | install returned |
+| `launch` | launch started | launch returned |
+| `first_frame` | launch returned | first screenshot that decodes as a PNG of at least 16x16 with more than one colour |
+| `run_to_first_frame` | `allocate()` called | first usable frame. The number QA.army cares about: Run click to first frame of the app |
+| `teardown` | release started | release and closure check finished |
+
+Then the session is held for `--hold` seconds with a screenshot every 5 s (`hold.screenshots_ok`, `screenshots_failed`, `max_gap_ms`), the runner taps the centre once and records whether the frame changed (`tap_frame_change`, the fixture changes colour on every tap), and the session is released. A sample counts as OK only when the outcome is `ok` and closure is `verified`.
+
+**Session drop.** The session ended before release: two consecutive heartbeat screenshots failed (`screenshot_lost`) or the provider reported the session gone. Counted in `health.dropped`.
+
+A session file where no sample reached a device is treated like a cold-boot run where nothing started: not published, investigated first.
+
+**Cloud results** run from the same workflow when the provider's key is a repository secret, use the provider's built-in Settings app (no install) with one sample, and are uploaded as artifacts only. They move into `results/` when the provider's `policy.benchmark_publication` allows it and a maintainer approves.
+
 ## What is not measured yet
 
-- **Session drops.** A drop is a session that ends before the caller closes it. Measuring it needs a held session with periodic checks. The runner for that does not exist yet.
-- **Queue time** on device clouds, which is separate from boot time.
+- **Any device cloud in published results.** See above.
 - **Observed free-tier limits.** [docs/free-tiers.md](../docs/free-tiers.md) lists what vendors document. Nothing there has been confirmed by using up an allowance.
 - **Any device cloud.** The harness has only run on GitHub-hosted runners.
 - Network quality, input latency, or rendering correctness.

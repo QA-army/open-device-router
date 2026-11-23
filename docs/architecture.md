@@ -74,7 +74,7 @@ Spend limits, quotas, session caps, capability checks, and which accounts exist.
 
 OpenDeviceRouter does not implement taps, swipes, typing, or snapshots.
 
-- **Mobile:** [agent-device](https://github.com/callstack/agent-device) (MIT) is the control layer. It drives local simulators, emulators, and USB devices, and connects to BrowserStack, AWS Device Farm, TestMu AI, Limrun, and Revyl through `agent-device connect <provider>` ([agent-device device clouds](https://agent-device.dev/docs/device-clouds), read 2026-11-22). It has a CLI, an MCP server, and a Node.js client. The adapter in `src/hands/agent-device.ts` is a pure function that builds the invocation.
+- **Mobile:** [agent-device](https://github.com/callstack/agent-device) (MIT) is the control layer. It drives local simulators, emulators, and USB devices, and connects to BrowserStack, AWS Device Farm, TestMu AI, Limrun, and Revyl through `agent-device connect <provider>` ([agent-device device clouds](https://agent-device.dev/docs/device-clouds), read 2026-11-22). It has a CLI, an MCP server, and a Node.js client. odr runs it in-process through its Node API (`startAgentDevice`) from `src/session/drivers/agent-device.ts`. Appetize is driven through `@appetize/cli` from `src/session/drivers/appetize.ts`. Both drivers map the session interface (screenshot, tap, type, swipe, key, install, launch, release) onto those tools and verify closure; neither implements input or capture itself.
 - **Web (proposed):** existing clients keep speaking CDP or WebDriver. The proxy forwards the connection to the chosen provider and does not reinterpret commands.
 
 The caller, whether an agent or a test suite, decides what to tap. The router decides where.
