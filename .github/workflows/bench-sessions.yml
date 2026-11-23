@@ -38,6 +38,8 @@ jobs:
     timeout-minutes: 60
     env:
       ODR_BENCH_RUNNER_LABEL: ubuntu-24.04
+      # avdmanager and the emulator disagree on the default AVD location on this image; pin both.
+      ANDROID_AVD_HOME: /home/runner/.android/avd
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -57,7 +59,9 @@ jobs:
           sdk="$ANDROID_HOME/cmdline-tools/latest/bin"
           yes | "$sdk/sdkmanager" --licenses > /dev/null || true
           "$sdk/sdkmanager" "platform-tools" "emulator" "platforms;android-34" "system-images;android-34;google_apis;x86_64" > /dev/null
+          mkdir -p "$ANDROID_AVD_HOME"
           echo no | "$sdk/avdmanager" create avd --force -n odr_pixel_6 -k "system-images;android-34;google_apis;x86_64" -d pixel_6
+          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -qx odr_pixel_6 || { echo "setup fault: emulator does not list odr_pixel_6"; exit 1; }
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
           echo "$ANDROID_HOME/emulator" >> "$GITHUB_PATH"
       - name: Build the fixture APK
@@ -169,8 +173,8 @@ jobs:
           pattern: session-github-*
           path: bench/results
           merge-multiple: true
-      - name: Rebuild RESULTS.md from the result files
-        run: npm run bench:summarize
+      - name: Rebuild RESULTS.md from the result files (rejected files are dropped, not published)
+        run: npm run bench:summarize -- --drop-rejected
       - name: Commit results
         run: |
           git config user.name "github-actions[bot]"

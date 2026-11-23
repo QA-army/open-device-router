@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Builds bench/RESULTS.md from bench/results/**.json. `--check` fails if the page does not match the data,
 // so numbers in RESULTS.md can only come from result files.
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Ajv } from "ajv";
@@ -83,7 +83,16 @@ for (const file of walk(resultsDir)) {
 }
 if (problems.length > 0) {
   for (const p of problems) console.error(p);
-  process.exit(1);
+  if (!process.argv.includes("--drop-rejected")) process.exit(1);
+  // CI publish only: remove rejected files so one broken target does not block the others.
+  const bad = new Set(problems.map((p) => p.split(":")[0]));
+  for (const rel of bad) {
+    rmSync(join(here, rel), { force: true });
+    console.error(`dropped ${rel}; it stays in the workflow artifacts`);
+  }
+  for (const list of [results, sessions]) {
+    for (let i = list.length - 1; i >= 0; i -= 1) if (bad.has(list[i].rel)) list.splice(i, 1);
+  }
 }
 
 const lines = [];
