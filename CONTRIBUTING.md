@@ -15,7 +15,7 @@ Thanks for helping. The registry is only useful if it is right, so corrections a
 Node.js 20.19 or newer.
 
 ```sh
-git clone https://github.com/QA-army/opendevicerouter.git
+git clone https://github.com/QA-army/open-device-router.git
 cd opendevicerouter
 npm install
 npm run check

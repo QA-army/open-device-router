@@ -54,7 +54,10 @@ class AgentDeviceDriver implements Driver {
     });
     this.#host = await ad.startAgentDevice({ stateDir: join(this.#dir, "state") });
     this.#client = this.#host.client;
-    this.#ov = { session: this.#session, tenant: ctx.tenant, runId: ctx.run_id, sessionIsolation: "tenant" };
+    // Tenant isolation in agent-device is bound to a provider lease, so it is only set for lease backends.
+    this.#ov = control.lease_backend
+      ? { session: this.#session, tenant: ctx.tenant, runId: ctx.run_id, sessionIsolation: "tenant" }
+      : { session: this.#session };
 
     if (control.lease_backend) {
       const lease = await this.#client.leases.allocate({
@@ -189,7 +192,7 @@ class AgentDeviceDriver implements Driver {
     }
     if (this.#host) {
       const shut = await this.#host.close().catch(() => undefined);
-      report.closed = shut ? !JSON.stringify(shut).includes('"pending"') && !JSON.stringify(shut).includes('"failed"') : false;
+      report.closed = shut ? shutdownClean(shut) : false;
     }
     this.#closeReport = report;
     if (this.#dir) rmSync(this.#dir, { recursive: true, force: true });
@@ -250,3 +253,15 @@ async function sweep(locator: Locator, env: NodeJS.ProcessEnv): Promise<ClosureR
 }
 
 export const agentDeviceDriver: DriverModule = { create: () => new AgentDeviceDriver(), sweep };
+
+/** True when agent-device's ShutdownReport shows nothing left running or in flight. */
+export function shutdownClean(r: any): boolean {
+  return (
+    r?.platformOwners === "closed" &&
+    (r.providerReleases?.pending?.length ?? 0) === 0 &&
+    (r.providerReleases?.unknown?.length ?? 0) === 0 &&
+    (r.requests?.abandoned ?? 0) === 0 &&
+    (r.plugins?.pending?.length ?? 0) === 0 &&
+    (r.runners?.handedOff?.length ?? 0) === 0
+  );
+}

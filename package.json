@@ -7,7 +7,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/QA-army/opendevicerouter.git"
+    "url": "git+https://github.com/QA-army/open-device-router.git"
   },
   "bin": {
     "odr": "dist/cli/index.js"
@@ -28,7 +28,8 @@
     "docs:free-tiers": "tsx src/cli/index.ts free-tiers --write",
     "docs:check": "tsx src/cli/index.ts free-tiers --check",
     "docs:keys": "tsx src/cli/index.ts keys-doc --write",
-    "docs:keys:check": "tsx src/cli/index.ts keys-doc --check"
+    "docs:keys:check": "tsx src/cli/index.ts keys-doc --check",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "ajv": "^8.17.1",

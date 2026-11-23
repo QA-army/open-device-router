@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/QA-army/opendevicerouter/schema/receipt.schema.json",
+  "$id": "https://github.com/QA-army/open-device-router/schema/receipt.schema.json",
   "title": "odr.receipt/v1",
   "description": "One device session: what was asked, what was granted, how long each phase took, and whether the provider confirmed closure. Contains no credentials or private session handles.",
   "type": "object",

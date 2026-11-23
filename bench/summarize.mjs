@@ -59,6 +59,9 @@ for (const file of walk(resultsDir)) {
     }
     if (!rel.startsWith(join("results", data.provider, "session", data.platform))) problems.push(`${rel}: must live under results/${data.provider}/session/${data.platform}/`);
     if (data.harness.commit === "uncommitted" || !data.harness.run_url) problems.push(`${rel}: only results from a public CI run with a commit and run URL are published`);
+    if (!data.samples.some((x) => x.device)) {
+      problems.push(`${rel}: no sample reached a device. Treated as a harness or environment fault; investigate before publishing`);
+    }
     sessions.push({ rel, ...data });
     continue;
   }

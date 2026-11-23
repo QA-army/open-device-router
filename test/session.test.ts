@@ -218,3 +218,12 @@ test("Appetize text escaping and device slugs", () => {
   assert.equal(escapeTypeText("a{Enter}b"), "a{{Enter}b");
   assert.equal(deviceSlug("iPhone 16 Pro"), "iphone16pro");
 });
+
+test("agent-device shutdown report: clean only when nothing is pending", async () => {
+  const { shutdownClean } = await import("../src/session/drivers/agent-device.js");
+  const clean = { providerReleases: { completed: ["l1"], pending: [], unknown: [] }, runners: { stopped: ["d"], handedOff: [] }, requests: { drained: 1, abandoned: 0 }, sessions: { closed: 1, failed: 0 }, platformOwners: "closed", plugins: { disposed: [], failed: [], pending: [] } };
+  assert.equal(shutdownClean(clean), true);
+  assert.equal(shutdownClean({ ...clean, platformOwners: "pending" }), false);
+  assert.equal(shutdownClean({ ...clean, providerReleases: { completed: [], pending: ["l1"], unknown: [] } }), false);
+  assert.equal(shutdownClean({ ...clean, runners: { stopped: [], handedOff: ["d"] } }), false);
+});

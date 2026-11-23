@@ -54,7 +54,7 @@ profiles:
     os: '26.2'
     evidence: observed
     observed_at: '2026-11-22'
-    source: https://github.com/QA-army/opendevicerouter/actions/runs/45078316652
+    source: https://github.com/QA-army/open-device-router/actions/runs/45078316652
     notes: macos-15 runner with Xcode 16.4 selected.
   - id: gha-ubuntu-pixel6-api34
     platform: android
@@ -63,7 +63,7 @@ profiles:
     os: '14'
     evidence: observed
     observed_at: '2026-11-22'
-    source: https://github.com/QA-army/opendevicerouter/actions/runs/45078316652
+    source: https://github.com/QA-army/open-device-router/actions/runs/45078316652
     notes: ubuntu-24.04 runner with KVM, system image android-34 google_apis x86_64.
 control:
   driver: agent-device

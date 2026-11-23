@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/QA-army/opendevicerouter/bench/schema/session.schema.json",
+  "$id": "https://github.com/QA-army/open-device-router/bench/schema/session.schema.json",
   "title": "OpenDeviceRouter session benchmark result",
   "description": "One file per session benchmark run, written by bench/runners/session.mjs from session receipts. Never written by hand.",
   "type": "object",

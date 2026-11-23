@@ -2,106 +2,154 @@
 
 **Give coding agents eyes on real browsers, iOS simulators, and Android phones at $0.**
 
-A coding agent in a Linux sandbox cannot boot an iOS Simulator, cannot open Safari, and has no phone to tap. Device and browser clouds can do all three, and many have a free allowance. OpenDeviceRouter is a session router that sits between your agent or test runner and the clouds you have connected. It sends each session to free capacity first, tells you what is left, and refuses to route when the free capacity is gone.
+One call gets your agent or test runner an iOS Simulator or Android device from your own machine, a free GitHub runner, or a device cloud you already have an account with. It installs your build, waits until the screen can be captured, hands you screenshot, tap, type, swipe and key input, then releases the device and proves it closed. Every session ends with a machine-readable receipt.
 
-> **Pre-release.** The provider registry, the routing decision, the ledger, and a benchmark harness work today. Launching sessions for you does not. The table below is exact about which is which.
+[Quick start](#quick-start) · [Get keys](docs/keys.md) · [SDK](#sdk) · [Midscene](#midscene) · [Benchmarks](bench/RESULTS.md) · [For agents](#for-agents) · [Roadmap](ROADMAP.md)
 
-## What works today
+> **Pre-release (0.1.0).** Not on npm yet; install from this repository. What is measured and what is only vendor-documented is labelled throughout.
 
-| Piece | State | Try it |
-| --- | --- | --- |
-| Provider registry: 19 entries with signup steps, credential handoff, free allowance, limits, and terms notes, each with a source URL and check date | Works | `npm run odr -- providers` |
-| Validator for those entries (JSON Schema plus policy rules) | Works, runs in CI | `npm run validate` |
-| [Free-tier index](docs/free-tiers.md), generated from the registry | Works. Vendor-documented, not measured | `npm run docs:free-tiers` |
-| Guided connect: prints what a provider's signup needs and how to get a credential | Works. You do the signup | `npm run odr -- connect revyl` |
-| Ledger of connected providers and estimated free capacity left | Works. Debits are manual | `npm run odr -- status` |
-| Routing decision with a reason for every candidate | Works as a dry run | `npm run odr -- plan --surface ios-simulator --minutes 10` |
-| Commands to drive the chosen device with [agent-device](https://github.com/callstack/agent-device) | Printed, not executed | same as above |
-| Cold-boot benchmark on GitHub-hosted runners | Works. First results committed by CI on 2026-11-22: [bench/RESULTS.md](bench/RESULTS.md). Small sample; read the limits in the method page | Actions tab, `bench-github-runners` |
-| `odr run`, `odr mcp`, `odr proxy`, SDKs, npm package | Not built | [ROADMAP.md](ROADMAP.md) |
-| Benchmarks of device clouds | Not run | [bench/METHODOLOGY.md](bench/METHODOLOGY.md) |
+<!-- MEASURED:START -->
+<!-- MEASURED:END -->
+
+## Why
+
+A coding agent in a Linux sandbox cannot boot an iOS Simulator and has no phone to tap. Device clouds can, and several have free allowances, but each has its own signup, key, session limit, concurrency cap and billing behavior. Agents leak sessions when a run crashes, and free tiers quietly turn into overage.
+
+OpenDeviceRouter handles the part around the device:
+
+- **Route** on what the run needs: platform, model, OS range, build format, inputs, keys, session length, parallel sessions.
+- **Reserve** capacity under a file lock before launch, so eight parallel workers cannot all spend the same 30 free minutes.
+- **Refuse** in free-only mode when the provider would bill and odr cannot verify the remaining allowance.
+- **Release** on success, failure, Ctrl-C, SIGTERM, uncaught exceptions and process exit; `odr sweep` cleans up after workers that died outright.
+- **Verify closure** from the provider's own session list or the local simulator/emulator state.
+- **Receipt** for every session (`odr.receipt/v1`): route, actual device identity, timings, screenshot health, usage and closure. No credentials and no session handle in it.
+
+Device control is [agent-device](https://github.com/callstack/agent-device) (MIT) for local, GitHub runners, Limrun, Revyl and AWS Device Farm, and the [Appetize CLI](https://docs.appetize.io/ai-agents/getting-started) for Appetize. odr does not reimplement device control.
 
 ## Quick start
 
-Needs Node.js 20.19 or newer.
+Needs Node.js 22.12 or newer.
 
 ```sh
-git clone https://github.com/QA-army/opendevicerouter.git
-cd opendevicerouter
-npm install
+git clone https://github.com/QA-army/open-device-router.git
+cd open-device-router
+npm install && npm run build && npm link     # puts `odr` on your PATH
+npm i agent-device                           # device control for local and agent-device clouds
+# or, from another project: npm i github:QA-army/open-device-router agent-device
 
-npm run odr -- providers                 # what is in the registry
-npm run odr -- connect local --done      # your own machine counts as a provider
-npm run odr -- connect revyl             # checklist for a cloud provider; you sign up yourself
-npm run odr -- plan --surface ios-simulator --minutes 10
+odr doctor                                   # what is installed, connected and missing
+odr connect local --done                     # your own machine is a provider
+odr run --platform android --build app.apk --minutes 10 -- npx my-agent
 ```
 
-`plan` prints which provider would be used, why the others were skipped, and the `agent-device` commands to drive the session. Nothing is started and nothing is debited. After a session, record it:
+`odr run` allocates, installs, launches, waits for the first usable frame, then runs your command with `ODR_SESSION_FILE` set. When the command exits, for any reason, the device is released and the receipt is written. Exit codes: `0` ok, `3` refused by policy, `4` session failed, `5` closure could not be verified.
+
+Dry run first if you want to see the decision:
 
 ```sh
-npm run odr -- record revyl --surface ios-simulator --minutes 8
-npm run odr -- status
+odr plan --platform ios --model "iPhone 16" --os ">=18" --build-format app-zip --minutes 10
 ```
 
-To get an `odr` command on your path: `npm run build && npm link`.
+### Add a cloud
 
-## How it works
-
-```mermaid
-flowchart LR
-  caller["Coding agent or test runner"] -->|"surface, minutes"| router["Router"]
-  registry[("Provider registry")] --> router
-  ledger[("Local ledger")] --> router
-  router -->|"decision + reason"| hands["Hands adapter"]
-  hands -->|"agent-device"| mobile["iOS and Android:<br/>local, GitHub runner, Limrun, Revyl, AWS Device Farm"]
-  hands -.->|"CDP / WebDriver pass-through (proposed)"| web["Browser clouds"]
+```sh
+odr keys revyl            # where to sign up, which key, which env var, the gh secret line
+export REVYL_API_KEY=...
+odr connect revyl --done
+odr run --platform ios --minutes 10 -- npx my-agent
 ```
 
-The router decides **where** a session runs. Your agent or test suite decides **what to tap**. The taps themselves go through [agent-device](https://github.com/callstack/agent-device) for mobile, and through unmodified CDP or WebDriver for browsers. OpenDeviceRouter does not reimplement device control.
+You sign up yourself; odr never creates accounts or accepts terms. Every provider's steps are in [docs/keys.md](docs/keys.md), generated from the registry.
 
-### Three stages
+## Targets
 
-| Stage | The router decides from | State |
-| --- | --- | --- |
-| **1. Deterministic switch and ledger** (v0.1) | Registry facts, your connections, your ledger. Fixed order: own hardware, public-repo runners, daily, monthly, open-source program, one-time trial. Refuses when nothing free fits | Decision logic built. Session launch not built |
-| **2. Telemetry router** (v0.2) | Stage 1, plus measured boot time, queue time, failed boots, and session survival. Retries elsewhere on infrastructure faults | Proposed |
-| **3. Intent router** (v1.0) | Stage 2, plus a git diff or agent goal and a budget. Proposes the smallest set of targets that covers the change | Proposed |
+Free allowances are vendor-documented on the date shown, not measured. Each links the page it came from.
 
-Spend limits, quotas, session caps, and capability checks are deterministic in every stage. A model may propose targets in stage 3. It never overrides a limit.
+| Target | Devices | Free allowance (checked 2026-11-22) | Session cap | Parallel | Control | After the free allowance |
+| --- | --- | --- | --- | --- | --- | --- |
+| Local | Your simulators, emulators, USB devices | Your hardware | none | your machine | agent-device | n/a |
+| GitHub-hosted runners | iOS Simulator (macOS runner), Android emulator (Ubuntu + KVM) | Free on public repositories ([GitHub docs](https://docs.github.com/en/actions/concepts/billing-and-usage)) | job timeout | per plan | agent-device | n/a on public repos |
+| Appetize | iOS Simulator, Android emulator | Free: 30 min a month, 3-minute sessions, 2 devices ([pricing](https://appetize.io/pricing)) | 3 min on Free | 2 on Free | Appetize CLI | Free throttles; Starter and Premium bill $0.06/min after 500 min |
+| Revyl | iOS Simulator, Android emulator | Up to 1,200 device minutes a month ([pricing](https://revyl.com/pricing/)) | see registry | 2 | agent-device | see registry |
+| Limrun | iOS Simulator, Android emulator | 120 one-time credits ([pricing](https://limrun.com/pricing)) | see registry | see registry | agent-device | see registry |
+| AWS Device Farm | Real iOS and Android devices | 1,000 one-time device minutes ([FAQ](https://aws.amazon.com/device-farm/faqs/)) | 150 min | per account | agent-device | bills per minute; free-only never routes here |
 
-Details: [docs/architecture.md](docs/architecture.md).
+Exact device profiles, inputs, keys, build formats and limits per provider: `odr show <id>` or [registry/providers/](registry/providers/). Fourteen more providers, including browser clouds, are researched or candidate entries: [docs/free-tiers.md](docs/free-tiers.md).
 
-## First targets
+## SDK
 
-The first routed targets are four places a mobile session can run, plus your own machine as the baseline.
+```ts
+import { allocate } from "opendevicerouter";
 
-| Target | Surfaces | Free allowance (vendor-documented, 2026-11-22) | Control path |
-| --- | --- | --- | --- |
-| Local devices | iOS Simulator, Android emulator, USB devices | Your hardware | agent-device |
-| GitHub-hosted runners | iOS Simulator, Android emulator | Standard runners are free on public repositories ([GitHub docs](https://docs.github.com/en/actions/concepts/billing-and-usage)) | agent-device on the runner |
-| Limrun | iOS Simulator, Android emulator | 120 one-time credits ([pricing](https://limrun.com/pricing)) | [agent-device provider](https://agent-device.dev/docs/limrun) |
-| Revyl | iOS Simulator, Android emulator | Up to 1,200 device minutes a month ([pricing](https://revyl.com/pricing/)) | [agent-device plugin](https://agent-device.dev/docs/revyl) |
-| AWS Device Farm | Real Android and iOS devices | 1,000 one-time device minutes ([FAQ](https://aws.amazon.com/device-farm/faqs/)) | [agent-device provider](https://agent-device.dev/docs/aws-device-farm) |
+const session = await allocate(
+  { platform: "android", model: "pixel", os: ">=14", build_format: "apk", needs: ["tap", "type", "swipe"], minutes: 10 },
+  { build: { format: "apk", path: "app.apk" } },
+);
+try {
+  const shot = await session.screenshot();          // { png, width, height } in input coordinates
+  await session.tap(shot.width / 2, shot.height / 2);
+  await session.type("hello");
+  await session.key("enter");
+  console.log(session.device);                       // actual model, OS and device id, confirmed by provider or driver
+} finally {
+  const receipt = await session.release();           // idempotent; also runs on signals and crashes
+}
+```
 
-Fourteen more providers are in the registry as researched or candidate entries, including browser session clouds. See [docs/free-tiers.md](docs/free-tiers.md). Free tiers change without notice; each row links the page it came from.
+`withSession(request, opts, fn)` does the same with release built in. `allocate` throws `RouteRefusedError` or `SessionError`; both carry the receipt.
 
-## Benchmark
+From a process started by `odr run`:
 
-A public, re-runnable benchmark of how long a device takes to be ready and how often it fails. Raw result files are committed, the summary page is generated from them, and CI fails if the two disagree.
+```ts
+import { attach } from "opendevicerouter";
+const session = await attach();   // reads ODR_SESSION_FILE; talks to odr over loopback with a bearer token
+```
 
-- Results: [bench/RESULTS.md](bench/RESULTS.md)
-- Method and publishing rules: [bench/METHODOLOGY.md](bench/METHODOLOGY.md)
+## Midscene
 
-Today it covers iOS Simulator and Android emulator cold boot on GitHub-hosted runners only. Device clouds are added once the project has its own account on each and the provider's terms have been read.
+```ts
+import { allocate } from "opendevicerouter";
+import { midsceneInterface } from "opendevicerouter/midscene";
 
-## Your accounts, your limits
+const session = await allocate({ platform: "ios", minutes: 10 }, { launch: "com.apple.Preferences" });
+const device = midsceneInterface(session);   // screenshotBase64, size, Tap, Input, KeyboardPress, Swipe
+// pass `device` to Midscene's Agent, per https://midscenejs.com/integrate-with-any-interface.html
+```
 
-- You sign up with each provider yourself. One account per provider per organization.
-- `odr` does not create accounts, accept terms, solve captchas, or enter phone or card details.
-- `odr` does not store credentials. It checks that an environment variable is set and never reads its value.
-- There is no paid path in the code. The ledger is a local estimate, and the provider's own meter is the authority, so turn on a provider-side spend cap where one exists.
+Screenshots are available for the whole session: every heartbeat takes one, and two misses in a row mark the session dropped with `screenshot_lost` in the receipt. odr does not record video; bring your own.
 
-Full rules: [docs/account-policy.md](docs/account-policy.md).
+## Spend controls
+
+| Mode | Behavior |
+| --- | --- |
+| `free-only` (default) | Uses only allowances that cannot bill, or that bill but were reconciled with the provider's usage API in the last 24 hours. Refuses when overage behavior is unknown. |
+| `--budget-usd n` | Prices every minute that is not provably free and refuses above `n` per session and above the connection's `--max-usd-month`. |
+
+Reservations are taken under a lock before the provider is called, and released or settled after. `odr reconcile appetize` pulls the provider's own usage figure; providers without a usage API stay labelled as local estimates.
+
+## Benchmarks
+
+Published numbers come from committed result files produced by CI on this public repository. The summary page is generated from them and CI fails if the two disagree. Nobody types a number into it.
+
+- Session benchmark: Run to first frame of a fixture app, allocate, install, launch, hold with screenshots every 5 s, tap check, teardown, closure.
+- Cold boot benchmark: device only.
+- Results: [bench/RESULTS.md](bench/RESULTS.md) · Method and publishing rules: [bench/METHODOLOGY.md](bench/METHODOLOGY.md)
+
+Cloud results are published only when the provider's terms allow it; until then they stay as CI artifacts.
+
+## Security
+
+- No credentials stored. odr checks that an env var is set and passes it to the driver; it never writes it.
+- The private session handle lives in `~/.opendevicerouter/sessions/<id>.json` (mode 0600) with a random bearer token for the loopback control server. Receipts never contain it.
+- Uploaded builds are private to your provider account and deleted on release where the provider allows it.
+- One account per provider per organization. odr does not create accounts, rotate trials, or bypass signup steps. See [docs/account-policy.md](docs/account-policy.md).
+
+## For agents
+
+- Operating guide: [AGENTS.md](AGENTS.md) · Machine summary: [llms.txt](llms.txt) · Keys: [docs/keys.md](docs/keys.md) or `odr keys --all`
+- Machine-readable output: `odr plan --json`, `odr run --json`, `odr providers --json`, `odr status --json`.
+- Receipt schema: [schema/receipt.schema.json](schema/receipt.schema.json).
+- Always release: use `withSession`, or `odr run -- <cmd>`, and run `odr sweep` at the start of CI jobs.
 
 ## What this is not
 
@@ -111,12 +159,10 @@ Full rules: [docs/account-policy.md](docs/account-policy.md).
 
 ## Contributing
 
-The most useful contribution is a correction to a provider entry, with a link to the vendor page. See [CONTRIBUTING.md](CONTRIBUTING.md). Coding agents working in this repository: read [AGENTS.md](AGENTS.md).
+The most useful contribution is a correction to a provider entry, with a link to the vendor page. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License and affiliation
 
-MIT. See [LICENSE](LICENSE).
+MIT. Maintained by [QA.army](https://www.qa.army). OpenDeviceRouter decides where a session runs and keeps it alive. Deciding which journeys to test and turning evidence into findings is QA.army's product and is not in this repository.
 
-Maintained by [QA.army](https://www.qa.army). OpenDeviceRouter decides where a session runs. Deciding which journeys to test and turning evidence into findings is QA.army's product and is not in this repository.
-
-This project is not affiliated with, sponsored by, or endorsed by any provider or tool named here. Product names are used only to identify the services described.
+Not affiliated with, sponsored by, or endorsed by any provider or tool named here. Product names are used only to identify the services described.

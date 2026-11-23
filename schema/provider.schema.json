@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/QA-army/opendevicerouter/schema/provider.schema.json",
+  "$id": "https://github.com/QA-army/open-device-router/schema/provider.schema.json",
   "title": "OpenDeviceRouter provider entry",
   "description": "One file per provider in registry/providers/. Every changeable fact carries a first-party source URL and the entry carries the date it was last checked.",
   "type": "object",
