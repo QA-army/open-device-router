@@ -58,14 +58,25 @@ jobs:
         run: |
           sdk="$ANDROID_HOME/cmdline-tools/latest/bin"
           yes | "$sdk/sdkmanager" --licenses > /dev/null || true
-          "$sdk/sdkmanager" "platform-tools" "emulator" "platforms;android-34" "system-images;android-34;google_apis;x86_64" > /dev/null
+          "$sdk/sdkmanager" "platform-tools" "emulator" "platforms;android-34" "system-images;android-34;aosp_atd;x86_64" > /dev/null
           mkdir -p "$ANDROID_AVD_HOME"
-          echo no | "$sdk/avdmanager" create avd --force -n odr_pixel_6 -k "system-images;android-34;google_apis;x86_64" -d pixel_6
+          echo no | "$sdk/avdmanager" create avd --force -n odr_pixel_6 -k "system-images;android-34;aosp_atd;x86_64" -d pixel_6
           # No GPU on the runner: software rendering, as in the cold-boot benchmark. Host GPU mode gives blank frames.
-          printf 'hw.gpu.enabled=yes\nhw.gpu.mode=swiftshader_indirect\n' >> "$ANDROID_AVD_HOME/odr_pixel_6.avd/config.ini"
+          # ATD is Google's CI image; 4 cores and 4 GB keep SystemUI from raising ANR dialogs that block input.
+          printf 'hw.gpu.enabled=yes\nhw.gpu.mode=swiftshader_indirect\nhw.cpu.ncore=4\nhw.ramSize=4096\n' >> "$ANDROID_AVD_HOME/odr_pixel_6.avd/config.ini"
           "$ANDROID_HOME/emulator/emulator" -list-avds | grep -qx odr_pixel_6 || { echo "setup fault: emulator does not list odr_pixel_6"; exit 1; }
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
           echo "$ANDROID_HOME/emulator" >> "$GITHUB_PATH"
+      - name: First boot and settle (not timed; the benchmark cold-boots again)
+        run: |
+          emulator -avd odr_pixel_6 -no-window -no-audio -no-boot-anim -no-snapshot-save > /tmp/warmup.log 2>&1 &
+          adb wait-for-device
+          until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; do sleep 2; done
+          sleep 30
+          adb shell settings put global hide_error_dialogs 1 || true
+          for k in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global $k 0; done
+          adb emu kill
+          while adb devices | grep -q emulator; do sleep 1; done
       - name: Build the fixture APK
         run: bench/fixtures/android/build.sh bench/tmp/fixtures
       - name: Session benchmark
@@ -95,7 +106,12 @@ jobs:
         run: bench/fixtures/ios/build.sh bench/tmp/fixtures
       - name: Pre-build agent-device's iOS runner, then shut every simulator down (not timed)
         run: |
-          npx --no-install agent-device prepare --platform ios --device "iPhone 17" --timeout 1500000 || echo "prepare failed; the benchmark will include runner preparation"
+          # Fails the job if the runner cannot be prepared, so published numbers never silently include the runner build.
+          ad="npx --no-install agent-device"
+          $ad boot --platform ios --device "iPhone 17" --pick newest --session odr-prepare --timeout 1500000
+          $ad prepare ios-runner --platform ios --session odr-prepare --timeout 1500000
+          $ad close --session odr-prepare --shutdown || true
+          echo "ODR_BENCH_RUNNER_PREPARED=1" >> "$GITHUB_ENV"
           xcrun simctl shutdown all || true
       - name: Session benchmark
         run: node bench/runners/session.mjs --provider github-actions --platform ios --model iPhone --build bench/tmp/fixtures/OdrFixture.app --app-id dev.odr.fixture --samples "$SAMPLES" --hold "$HOLD" --out-dir bench/tmp/out

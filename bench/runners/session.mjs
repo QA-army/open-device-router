@@ -57,15 +57,19 @@ const request = {
   require_control: true,
   spend: opt.spend === "free-only" ? { mode: "free-only" } : { mode: "budget", max_usd: opt.spend },
 };
-const home = join(tmpdir(), `odr-bench-${process.pid}`);
+const CHILD = process.env.ODR_BENCH_CHILD_SAMPLE;
+const home = process.env.ODR_BENCH_HOME ?? join(tmpdir(), `odr-bench-${process.pid}`);
 // A fresh ledger per run, connected to the one provider under test.
 const connectArgs = ["dist/cli/index.js", "connect", opt.provider, "--done", ...(process.env.ODR_BENCH_PLAN ? ["--plan", process.env.ODR_BENCH_PLAN] : [])];
-const connected = spawnSync(process.execPath, connectArgs, { env: { ...process.env, ODR_HOME: home }, encoding: "utf8" });
+const connected = CHILD ? { status: 0 } : spawnSync(process.execPath, connectArgs, { env: { ...process.env, ODR_HOME: home }, encoding: "utf8" });
 if (connected.status !== 0) throw new Error(`odr connect ${opt.provider} failed: ${connected.stderr || connected.stdout}`);
 const startedAt = new Date().toISOString();
 const samples = [];
 
-for (let n = 1; n <= opt.samples; n += 1) {
+// Each sample runs in its own process, as a QA.army worker would. agent-device keeps a host-wide
+// device claim for a session it could not close until its process exits, so one stuck sample in a
+// shared process would block every later one.
+async function runSample(n) {
   const sample = { n, outcome: "failed", timings_ms: {}, hold: { seconds: opt.hold, screenshots_ok: 0, screenshots_failed: 0, max_gap_ms: 0 } };
   let session;
   try {
@@ -109,7 +113,6 @@ for (let n = 1; n <= opt.samples; n += 1) {
     sample.outcome = e instanceof RouteRefusedError ? "refused" : "failed";
     sample.error = { code: e?.code ?? "error", message: String(e?.message ?? e).slice(0, 500) };
   }
-  samples.push(sample);
   // A sample that could not prove closure must not poison the next one. On a CI runner the bench
   // owns the machine, so it force-stops local devices and records that it had to.
   if (sample.closure && sample.closure !== "verified" && opt.provider === "github-actions") {
@@ -118,6 +121,30 @@ for (let n = 1; n <= opt.samples; n += 1) {
     await sleep(5000);
   }
   console.error(`[sample ${n}] ${sample.outcome} run_to_first_frame=${sample.timings_ms.run_to_first_frame ?? "-"}ms closure=${sample.closure ?? "-"}`);
+  return sample;
+}
+
+if (CHILD) {
+  const sample = await runSample(Number(CHILD));
+  process.stdout.write(`${JSON.stringify(sample)}\n`);
+  process.exit(0);
+}
+for (let n = 1; n <= opt.samples; n += 1) {
+  const child = spawnSync(process.execPath, process.argv.slice(1), {
+    env: { ...process.env, ODR_BENCH_CHILD_SAMPLE: String(n), ODR_BENCH_HOME: home },
+    stdio: ["ignore", "pipe", "inherit"],
+    encoding: "utf8",
+    maxBuffer: 16 * 1024 * 1024,
+    timeout: 45 * 60_000,
+  });
+  const line = child.stdout?.trim().split("\n").pop();
+  let sample;
+  try {
+    sample = JSON.parse(line ?? "");
+  } catch {
+    sample = { n, outcome: "failed", timings_ms: {}, error: { code: "sample_process", message: `sample process exited ${child.status ?? child.signal} without a result` } };
+  }
+  samples.push(sample);
 }
 
 function summarize(r) {
@@ -147,6 +174,9 @@ const result = {
   harness: harness("bench/runners/session.mjs"),
   environment: environment({
     node: process.version,
+    // 1 when the workflow built and started agent-device's iOS runner before timing; otherwise the
+    // first sample's allocate includes that build.
+    runner_prepared: process.env.ODR_BENCH_RUNNER_PREPARED === "1" ? "yes" : "no",
     "agent-device": (await tryRun("npx", ["--no-install", "agent-device", "--version"])) ?? "not installed",
     "@appetize/cli": (await tryRun("appetize", ["--version"])) ?? "not installed",
   }),
