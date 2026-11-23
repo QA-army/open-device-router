@@ -26,6 +26,7 @@ allowances:
     max_session_minutes: 15
     scope: Free plan, no card needed
     source: https://steel.dev/pricing
+    overage: unknown
 paid:
   summary: Launch plan lists $0.10 per browser hour.
   source: https://steel.dev/pricing

@@ -1,0 +1,184 @@
+name: bench-sessions
+
+# Session benchmark: Run click to first frame of the app, plus hold, input and teardown.
+# Each job builds the fixture app from source, then runs bench/runners/session.mjs through the SDK.
+# GitHub-runner results are committed to bench/results. Cloud results are uploaded as artifacts only:
+# publishing them waits on the provider's terms (registry policy.benchmark_publication) and maintainer
+# approval. Cloud jobs skip when their key is not set as a repository secret.
+
+on:
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: Sessions per target (1-10)
+        default: "3"
+        required: true
+      hold:
+        description: Seconds to hold each session (0-600)
+        default: "60"
+        required: true
+  schedule:
+    - cron: "41 7 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bench-sessions
+  cancel-in-progress: false
+
+env:
+  SAMPLES: ${{ github.event.inputs.samples || '3' }}
+  HOLD: ${{ github.event.inputs.hold || '60' }}
+  AGENT_DEVICE_VERSION: 0.21.41
+
+jobs:
+  android-github:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      ODR_BENCH_RUNNER_LABEL: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci && npm run build && npm i --no-save "agent-device@$AGENT_DEVICE_VERSION"
+      - name: Check inputs
+        run: '[[ "$SAMPLES" =~ ^([1-9]|10)$ && "$HOLD" =~ ^[0-9]+$ && "$HOLD" -le 600 ]] || { echo "bad inputs"; exit 1; }'
+      - name: Allow the runner user to use KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install the emulator image and create an AVD (not timed)
+        run: |
+          sdk="$ANDROID_HOME/cmdline-tools/latest/bin"
+          yes | "$sdk/sdkmanager" --licenses > /dev/null || true
+          "$sdk/sdkmanager" "platform-tools" "emulator" "platforms;android-34" "system-images;android-34;google_apis;x86_64" > /dev/null
+          echo no | "$sdk/avdmanager" create avd --force -n odr_pixel_6 -k "system-images;android-34;google_apis;x86_64" -d pixel_6
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/emulator" >> "$GITHUB_PATH"
+      - name: Build the fixture APK
+        run: bench/fixtures/android/build.sh bench/tmp/fixtures
+      - name: Session benchmark
+        run: node bench/runners/session.mjs --provider github-actions --platform android --build bench/tmp/fixtures/odr-fixture.apk --app-id dev.odr.fixture --samples "$SAMPLES" --hold "$HOLD" --out-dir bench/tmp/out
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: session-github-android
+          path: bench/tmp/out
+          if-no-files-found: warn
+
+  ios-github:
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      ODR_BENCH_RUNNER_LABEL: macos-15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci && npm run build && npm i --no-save "agent-device@$AGENT_DEVICE_VERSION"
+      - name: Check inputs
+        run: '[[ "$SAMPLES" =~ ^([1-9]|10)$ && "$HOLD" =~ ^[0-9]+$ && "$HOLD" -le 600 ]] || { echo "bad inputs"; exit 1; }'
+      - name: Build the fixture app
+        run: bench/fixtures/ios/build.sh bench/tmp/fixtures
+      - name: Session benchmark
+        run: node bench/runners/session.mjs --provider github-actions --platform ios --model iPhone --build bench/tmp/fixtures/OdrFixture.app --app-id dev.odr.fixture --samples "$SAMPLES" --hold "$HOLD" --out-dir bench/tmp/out
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: session-github-ios
+          path: bench/tmp/out
+          if-no-files-found: warn
+
+  # Cloud providers. Each runs only when its key is a repository secret. Results stay as artifacts.
+  cloud:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { provider: appetize, platform: android, secret: APPETIZE_API_TOKEN }
+          - { provider: appetize, platform: ios, secret: APPETIZE_API_TOKEN }
+          - { provider: limrun, platform: android, secret: LIMRUN_API_KEY }
+          - { provider: limrun, platform: ios, secret: LIMRUN_API_KEY }
+          - { provider: revyl, platform: android, secret: REVYL_API_KEY }
+          - { provider: revyl, platform: ios, secret: REVYL_API_KEY }
+    env:
+      ODR_BENCH_RUNNER_LABEL: ubuntu-24.04
+      HAS_KEY: ${{ secrets[matrix.secret] != '' }}
+      APPETIZE_API_TOKEN: ${{ secrets.APPETIZE_API_TOKEN }}
+      LIMRUN_API_KEY: ${{ secrets.LIMRUN_API_KEY }}
+      REVYL_API_KEY: ${{ secrets.REVYL_API_KEY }}
+      ODR_BENCH_PLAN: ${{ vars[format('ODR_{0}_PLAN', matrix.provider)] }}
+    steps:
+      - name: Skip without a key
+        if: env.HAS_KEY != 'true'
+        run: echo "${{ matrix.secret }} is not set; skipping ${{ matrix.provider }} ${{ matrix.platform }}. See docs/keys.md."
+      - uses: actions/checkout@v7
+        if: env.HAS_KEY == 'true'
+      - uses: actions/setup-node@v7
+        if: env.HAS_KEY == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - if: env.HAS_KEY == 'true'
+        run: |
+          npm ci && npm run build
+          if [ "${{ matrix.provider }}" = appetize ]; then npm i -g @appetize/cli; else npm i --no-save "agent-device@$AGENT_DEVICE_VERSION"; fi
+      - name: Session benchmark (built-in app, no install)
+        if: env.HAS_KEY == 'true'
+        run: |
+          app=$([ "${{ matrix.platform }}" = ios ] && echo com.apple.Preferences || echo com.android.settings)
+          node bench/runners/session.mjs --provider ${{ matrix.provider }} --platform ${{ matrix.platform }} --app-id "$app" --samples 1 --hold 30 --out-dir bench/tmp/out
+      - uses: actions/upload-artifact@v7
+        if: always() && env.HAS_KEY == 'true'
+        with:
+          name: session-cloud-${{ matrix.provider }}-${{ matrix.platform }}
+          path: bench/tmp/out
+          if-no-files-found: warn
+
+  publish:
+    needs: [android-github, ios-github]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: session-github-*
+          path: bench/results
+          merge-multiple: true
+      - name: Rebuild RESULTS.md from the result files
+        run: npm run bench:summarize
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bench/results bench/RESULTS.md
+          if git diff --cached --quiet; then
+            echo "No new result files."
+            exit 0
+          fi
+          git commit -m "bench: session results from run ${GITHUB_RUN_ID}"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1

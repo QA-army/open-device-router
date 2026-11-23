@@ -1,15 +1,23 @@
 # Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
 id: appetize
 name: Appetize
-status: researched
+status: launch
 checked_at: '2026-11-22'
 homepage: https://appetize.io
 surfaces:
   - ios-simulator
   - android-emulator
 hands:
-  kind: unknown
-  notes: Automation path not verified in this pass.
+  kind: appetize-cli
+  env:
+    - APPETIZE_API_TOKEN
+  requires:
+    - Node.js 22 or newer
+    - '@appetize/cli 0.20.0 or newer'
+  source: https://docs.appetize.io/ai-agents/getting-started
+  notes: Authenticated `@appetize/cli` sessions. odr uploads the build privately through the REST API,
+    starts the session with that build, drives it with CLI tap, type, swipe, press and screenshot, and
+    proves closure from the provider's session history. Android sessions also print an adb serial.
 signup:
   required: true
   url: https://appetize.io/signup
@@ -33,21 +41,138 @@ signup:
 credentials:
   kind: api_key
   acquire: manual_copy
-  location: Account Dashboard; admin or developer role
-  source: https://docs.appetize.io/rest-api/overview
+  location: Organization settings > API tokens (admin or developer role)
+  env:
+    - APPETIZE_API_TOKEN
+  source: https://docs.appetize.io/account/api-tokens
+  notes: The CLI and the REST API use the same token. The REST API sends it as the X-API-KEY header.
 allowances:
   - type: monthly
     amount: 30
     unit: minute
     max_session_minutes: 3
     max_parallel: 2
-    scope: Free plan, single user
+    scope: Free plan. Pricing page lists "30 minutes refilled monthly" and 3-minute sessions.
     source: https://appetize.io/pricing
+    overage: throttled
+    overage_source: https://appetize.io/pricing
+    notes: The pricing table leaves the API Access row blank for every plan, so CLI access on Free is
+      unverified until a Free account is connected.
+  - plan: starter
+    type: monthly
+    amount: 500
+    unit: minute
+    max_parallel: 3
+    scope: Starter plan, $59/mo. Unlimited session length.
+    source: https://appetize.io/pricing
+    overage: bills
+    overage_usd_per_minute: 0.06
+    overage_source: https://appetize.io/pricing
+  - plan: premium
+    type: monthly
+    amount: 500
+    unit: minute
+    max_parallel: 16
+    scope: Premium plan, $319/mo. Unlimited session length.
+    source: https://appetize.io/pricing
+    overage: bills
+    overage_usd_per_minute: 0.06
+    overage_source: https://appetize.io/pricing
+paid:
+  summary: Starter $59/mo and Premium $319/mo, each 500 minutes then $0.06 per minute. Enterprise is
+    custom.
+  source: https://appetize.io/pricing
+profiles:
+  - id: appetize-iphone16pro-18-2
+    platform: ios
+    kind: simulator
+    model: iPhone 16 Pro
+    os: '18.2'
+    provider_device: iphone16pro
+    logical:
+      width: 402
+      height: 874
+    pixels:
+      width: 1206
+      height: 2622
+    evidence: observed
+    observed_at: '2026-10-06'
+    notes: Observed by the maintainers on a paid account through the CLI. No public receipt yet; the
+      session benchmark publishes one.
+  - id: appetize-pixel9pro-15
+    platform: android
+    kind: emulator
+    model: Pixel 9 Pro
+    os: '15.0'
+    provider_device: pixel9pro
+    pixels:
+      width: 1280
+      height: 2856
+    evidence: observed
+    observed_at: '2026-10-05'
+    notes: Observed over adb on a paid account. The provider has reported a different device than the one
+      requested, so odr reads the actual device from session history.
+  - id: appetize-any-ios
+    platform: ios
+    kind: simulator
+    model: '*'
+    os: '*'
+    evidence: vendor-documented
+    source: https://docs.appetize.io/ai-agents/sessions
+    notes: Any id from `appetize device list --platform ios`.
+  - id: appetize-any-android
+    platform: android
+    kind: emulator
+    model: '*'
+    os: '*'
+    evidence: vendor-documented
+    source: https://docs.appetize.io/ai-agents/sessions
+    notes: Any id from `appetize device list --platform android`.
+control:
+  driver: appetize-cli
+  package: '@appetize/cli'
+  min_version: 0.20.0
+  inputs:
+    - screenshot
+    - tap
+    - type
+    - swipe
+    - key
+    - install
+    - launch
+  keys:
+    - enter
+    - backspace
+    - tab
+    - home
+    - back
+  screenshot: whole_session
+  build_formats:
+    - apk
+    - app-zip
+  install: upload_before_allocation
+  closure_check: provider_api
+  usage_api: https://docs.appetize.io/rest-api/v1/usage-summary
+  evidence: observed
+  source: https://docs.appetize.io/ai-agents/automation
+  notes: '`back` is Android only. Sessions end after 2 idle minutes by default; odr sets the build''s
+    inactivity timeout and time limit on upload and heartbeats with a screenshot. The CLI streams start
+    phases (queued, downloadingApp, installingApp, launchingApp, ready) on stderr; odr times them.'
 policy:
   max_accounts_per_org: 1
   benchmark_publication: unknown
   third_party_access: unknown
+  terms_url: https://appetize.io/terms
+  terms_checked_note: 2026-11-22 the page rendered no terms text to an automated fetch, so no clause was read. Counsel question.
+  notes: Benchmark publication is unknown until the terms are read. Appetize numbers stay out of bench/RESULTS.md until then.
 sources:
   - https://appetize.io/pricing
-  - https://docs.appetize.io/rest-api/overview
-  - https://appetize.io/signup
+  - https://docs.appetize.io/ai-agents/getting-started
+  - https://docs.appetize.io/ai-agents/sessions
+  - https://docs.appetize.io/ai-agents/automation
+  - https://docs.appetize.io/ai-agents/screenshots-and-recordings
+  - https://docs.appetize.io/platform/session-inactivity-timeout
+  - https://docs.appetize.io/rest-api/v1/create-new-app
+  - https://docs.appetize.io/rest-api/v1/usage-summary
+  - https://docs.appetize.io/rest-api/sessions
+  - https://docs.appetize.io/account/api-tokens

@@ -1,8 +1,8 @@
 {
   "name": "opendevicerouter",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
-  "description": "Browser and mobile session router for coding agents and test runners. Uses your own free cloud tiers first and stops before any billing.",
+  "description": "Device session router for coding agents and test runners: allocate a simulator, emulator or cloud device from your own free tiers, drive it from Node or Midscene, release it, and get a receipt.",
   "license": "MIT",
   "type": "module",
   "repository": {
@@ -13,7 +13,7 @@
     "odr": "dist/cli/index.js"
   },
   "engines": {
-    "node": ">=20.19"
+    "node": ">=22.12"
   },
   "scripts": {
     "odr": "tsx src/cli/index.ts",
@@ -24,19 +24,25 @@
     "bench:summarize": "node bench/summarize.mjs",
     "bench:check": "node bench/summarize.mjs --check",
     "freshness": "tsx src/cli/index.ts freshness",
-    "check": "npm run validate && npm run typecheck && npm test && npm run docs:check && npm run bench:check",
+    "check": "npm run validate && npm run typecheck && npm test && npm run docs:check && npm run docs:keys:check && npm run bench:check",
     "docs:free-tiers": "tsx src/cli/index.ts free-tiers --write",
-    "docs:check": "tsx src/cli/index.ts free-tiers --check"
+    "docs:check": "tsx src/cli/index.ts free-tiers --check",
+    "docs:keys": "tsx src/cli/index.ts keys-doc --write",
+    "docs:keys:check": "tsx src/cli/index.ts keys-doc --check"
   },
   "dependencies": {
     "ajv": "^8.17.1",
     "yaml": "^2.6.0"
   },
   "peerDependencies": {
-    "agent-device": ">=0.21.0"
+    "agent-device": ">=0.21.0",
+    "@midscene/core": ">=1.14.0"
   },
   "peerDependenciesMeta": {
     "agent-device": {
+      "optional": true
+    },
+    "@midscene/core": {
       "optional": true
     }
   },
@@ -44,5 +50,25 @@
     "@types/node": "^22.9.0",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
-  }
+  },
+  "main": "dist/sdk/index.js",
+  "types": "dist/sdk/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/sdk/index.d.ts",
+      "import": "./dist/sdk/index.js"
+    },
+    "./midscene": {
+      "types": "./dist/sdk/midscene.d.ts",
+      "import": "./dist/sdk/midscene.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "registry",
+    "schema",
+    "README.md",
+    "LICENSE"
+  ]
 }

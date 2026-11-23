@@ -37,8 +37,8 @@ signup:
   phone_required: unknown
   work_email_required: unknown
   notes: 'Disposable email providers are rejected. The trial is granted on request: individuals within
-    5 business days, companies within 2 business days and with a professional email plus company details.
-    The research notes record a one-trial-per-IP rule in the Genymotion terms.'
+    5 business days, companies within 2 business days and with a professional email plus company
+    details. The research notes record a one-trial-per-IP rule in the Genymotion terms.'
 credentials:
   kind: api_key
   acquire: manual_copy
@@ -53,12 +53,14 @@ allowances:
     max_parallel: 2
     scope: Trial for individuals, on request
     source: https://support.genymotion.com/hc/en-us/articles/17982644496157-How-do-I-get-the-free-trial-for-Genymotion-Cloud-SaaS
+    overage: unknown
   - type: one_time
     amount: 1000
     unit: device_minute
     max_parallel: 10
     scope: Trial for companies, on request
     source: https://support.genymotion.com/hc/en-us/articles/17982644496157-How-do-I-get-the-free-trial-for-Genymotion-Cloud-SaaS
+    overage: unknown
 policy:
   max_accounts_per_org: 1
   benchmark_publication: unknown

@@ -46,14 +46,16 @@ allowances:
     amount: 100
     unit: browser_minute
     expires_days: 30
-    scope: First workspace in the subscription only. Exceeding a limit converts the workspace to pay-as-you-go.
+    scope: First workspace in the subscription only. Exceeding a limit converts the workspace to
+      pay-as-you-go.
     source: https://learn.microsoft.com/en-us/azure/app-testing/playwright-workspaces/how-to-try-playwright-workspaces-free
+    overage: bills
 policy:
   max_accounts_per_org: 1
   benchmark_publication: unknown
   third_party_access: unknown
-notes: The trial converts to paid automatically when a limit is exceeded, so the router must hard-stop
-  before the limit.
+notes: The trial converts to paid automatically when a limit is exceeded, so the router must
+  hard-stop before the limit.
 sources:
   - https://learn.microsoft.com/en-us/azure/app-testing/playwright-workspaces/how-to-try-playwright-workspaces-free
   - https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account

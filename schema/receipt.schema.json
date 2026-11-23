@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/QA-army/opendevicerouter/schema/receipt.schema.json",
+  "title": "odr.receipt/v1",
+  "description": "One device session: what was asked, what was granted, how long each phase took, and whether the provider confirmed closure. Contains no credentials or private session handles.",
+  "type": "object",
+  "required": ["schema", "id", "odr_version", "created_at", "request", "timings_ms", "health", "closure", "outcome"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "odr.receipt/v1" },
+    "id": { "type": "string", "pattern": "^r_[0-9a-f]{16}$" },
+    "odr_version": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "closed_at": { "type": "string", "format": "date-time" },
+    "request": { "type": "object" },
+    "route": {
+      "type": "object",
+      "required": ["provider", "allowance", "surface", "usd_reserved", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "provider": { "type": "string" },
+        "allowance": { "type": "integer", "minimum": 0 },
+        "plan": { "type": "string" },
+        "profile": { "type": "string" },
+        "surface": { "type": "string" },
+        "basis": { "enum": ["unlimited", "provider_reconciled", "provider_stops", "local_estimate"] },
+        "usd_reserved": { "type": "number", "minimum": 0 },
+        "reason": { "type": "string" }
+      }
+    },
+    "device": {
+      "type": "object",
+      "required": ["provider", "platform", "kind", "confirmed_by"],
+      "additionalProperties": false,
+      "properties": {
+        "provider": { "type": "string" },
+        "platform": { "enum": ["ios", "android", "web"] },
+        "kind": { "enum": ["simulator", "emulator", "real", "browser"] },
+        "model": { "type": "string" },
+        "os_version": { "type": "string" },
+        "provider_device": { "type": "string" },
+        "device_id": { "type": "string" },
+        "confirmed_by": { "enum": ["provider_api", "driver", "requested_only"] }
+      }
+    },
+    "timings_ms": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(queue|upload|allocate|provider_queue|install|launch|first_frame|run_to_first_frame|session|teardown)$": { "type": "number", "minimum": 0 }
+      }
+    },
+    "health": {
+      "type": "object",
+      "required": ["heartbeats", "heartbeat_failures", "screenshots_ok", "screenshots_failed", "dropped"],
+      "additionalProperties": false,
+      "properties": {
+        "heartbeats": { "type": "integer", "minimum": 0 },
+        "heartbeat_failures": { "type": "integer", "minimum": 0 },
+        "screenshots_ok": { "type": "integer", "minimum": 0 },
+        "screenshots_failed": { "type": "integer", "minimum": 0 },
+        "dropped": { "type": "boolean" },
+        "dropped_reason": { "type": "string" }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "required": ["minutes", "amount", "unit", "usd_estimate", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "minutes": { "type": "number", "minimum": 0 },
+        "amount": { "type": "number", "minimum": 0 },
+        "unit": { "type": "string" },
+        "usd_estimate": { "type": "number", "minimum": 0 },
+        "provider_minutes": { "type": "number", "minimum": 0 },
+        "source": { "enum": ["odr", "provider"] }
+      }
+    },
+    "closure": {
+      "type": "object",
+      "required": ["status", "method"],
+      "additionalProperties": false,
+      "properties": {
+        "status": { "enum": ["verified", "unverified", "failed", "not_started"] },
+        "method": { "enum": ["provider_api", "driver", "none"] },
+        "detail": { "type": "string" }
+      }
+    },
+    "outcome": { "enum": ["ok", "failed", "cancelled", "worker_lost", "refused"] },
+    "error": {
+      "type": "object",
+      "required": ["code", "message"],
+      "additionalProperties": false,
+      "properties": { "code": { "type": "string" }, "message": { "type": "string" } }
+    }
+  }
+}

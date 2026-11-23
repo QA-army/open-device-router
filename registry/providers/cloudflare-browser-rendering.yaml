@@ -48,15 +48,16 @@ allowances:
     max_parallel: 3
     scope: Workers Free plan. Requests return 429 until the next UTC day once used up.
     source: https://developers.cloudflare.com/browser-rendering/llms-full.txt
+    overage: stops
 policy:
   max_accounts_per_org: 1
   benchmark_publication: allowed_with_replication
   third_party_access: restricted
   terms_url: https://www.cloudflare.com/terms/
   terms_checked_note: Terms last updated 2025-09-12, read 2026-11-22.
-  notes: Section 2.2.2 permits benchmark tests if the disclosure includes "all information necessary to
-    replicate" them. Section 2.2.1 prohibits signing up "on behalf of a third party" and scripts that
-    "produce multiple accounts".
+  notes: Section 2.2.2 permits benchmark tests if the disclosure includes "all information necessary
+    to replicate" them. Section 2.2.1 prohibits signing up "on behalf of a third party" and scripts
+    that "produce multiple accounts".
 sources:
   - https://developers.cloudflare.com/browser-rendering/llms-full.txt
   - https://developers.cloudflare.com/fundamentals/account/create-account/

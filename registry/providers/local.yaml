@@ -30,12 +30,56 @@ allowances:
     unit: unlimited
     scope: Your own hardware
     source: https://github.com/callstack/agent-device
+    overage: not_applicable
 policy:
   max_accounts_per_org: 1
   benchmark_publication: not_applicable
   third_party_access: not_applicable
-notes: iOS Simulator needs macOS. Always ranked first by the router because it costs nothing and has no
-  quota.
+notes: iOS Simulator needs macOS. Always ranked first by the router because it costs nothing and has
+  no quota.
 sources:
   - https://github.com/callstack/agent-device
   - https://agent-device.dev/docs/commands
+profiles:
+  - id: local-any-ios-simulator
+    platform: ios
+    kind: simulator
+    model: '*'
+    os: '*'
+    evidence: vendor-documented
+    source: https://agent-device.dev/docs/client-api
+    notes: Any simulator installed in Xcode on this Mac.
+  - id: local-any-android-emulator
+    platform: android
+    kind: emulator
+    model: '*'
+    os: '*'
+    evidence: vendor-documented
+    source: https://agent-device.dev/docs/client-api
+    notes: A running emulator or an AVD agent-device can boot.
+control:
+  driver: agent-device
+  package: agent-device
+  min_version: 0.21.0
+  inputs:
+    - screenshot
+    - tap
+    - type
+    - swipe
+    - key
+    - install
+    - launch
+  keys:
+    - enter
+    - home
+    - back
+  screenshot: whole_session
+  build_formats:
+    - apk
+    - app
+    - app-zip
+  install: after_allocation
+  closure_check: driver
+  evidence: vendor-documented
+  source: https://agent-device.dev/docs/client-api
+  notes: Sessions run in an in-process agent-device daemon with tenant isolation. odr shuts down only devices it booted. `back` is Android only.

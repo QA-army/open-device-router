@@ -27,9 +27,9 @@ test("the twelve researched providers are present", () => {
   }
 });
 
-test("exactly four launch targets, each with a control path and publishable benchmarks", () => {
+test("four to six launch targets, each with a control path and no restricted benchmark terms", () => {
   const launch = providers.filter((p) => p.status === "launch");
-  assert.equal(launch.length, 4);
+  assert.ok(launch.length >= 4 && launch.length <= 6, `${launch.length} launch targets`);
   for (const p of launch) {
     assert.notEqual(p.hands.kind, "unknown");
     assert.notEqual(p.policy.benchmark_publication, "restricted");

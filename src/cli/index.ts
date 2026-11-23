@@ -3,33 +3,41 @@ import { parseArgs } from "node:util";
 import { costInUnits, loadState, odrHome, remainingFor, saveState, type Connection } from "../core/ledger.js";
 import { route, TYPE_ORDER } from "../core/router.js";
 import { isSurface, SURFACES, type Allowance, type Provider, type Surface } from "../core/types.js";
-import { planHands } from "../hands/agent-device.js";
 import { ageInDays, findProvider, loadRegistry } from "../registry/load.js";
 import { freeTiersMarkdown } from "./free-tiers.js";
+import { keysMarkdown } from "./keys.js";
+import { cmdDoctor, cmdForget, cmdKeys, cmdReconcile, cmdRun, cmdSessions, cmdSweep, REQUEST_OPTIONS, requestFromFlags } from "./session-commands.js";
+import { VERSION } from "../version.js";
 
-const HELP = `odr - OpenDeviceRouter (pre-release)
+const HELP = `odr - OpenDeviceRouter ${VERSION} (pre-release)
 
-Works today
-  odr providers [--status s] [--surface s] [--json]   list provider entries
-  odr show <id>                                       print one entry
-  odr validate                                        check every entry against the schema and policy rules
-  odr freshness [--max-age-days 45] [--json]          list entries whose checked_at is too old
-  odr free-tiers [--write | --check]                  render docs/free-tiers.md from the registry
-  odr connect <id>                                    print the signup and credential checklist
-  odr connect <id> --done [--surfaces a,b] [--oss-program]
-                                                      record that your own account is connected
-  odr disconnect <id>                                 forget a connection (ledger history is kept)
-  odr status [--json]                                 connected providers and estimated free capacity left
-  odr plan --surface <s> --minutes <n> [--parallel n] [--app id] [--session name] [--json]
-                                                      dry run: which provider would be used, and why
-  odr record <id> --surface <s> --minutes <n> [--note text]
-                                                      debit the local ledger after a session
+Sessions
+  odr run --platform ios|android [--model m] [--os 18|>=17] [--build app.apk|--build-url u|--build-id id]
+          [--needs tap,type,swipe,key] [--keys enter,home] --minutes n [--budget-usd n] [--json] [-- cmd ...]
+                                   allocate a device, install and launch, wait for the first usable frame,
+                                   run cmd with ODR_SESSION_FILE set, then release and verify closure
+  odr sessions [--all]             open reservations in the ledger
+  odr sweep                        stop devices left by dead or lost workers
+  odr session forget <id>          mark a reservation closed after checking the provider by hand
+  odr reconcile <id>               pull the provider's own usage figure (Appetize today)
 
-Not implemented (see ROADMAP.md)
-  odr run, odr mcp, odr proxy
+Keys and accounts
+  odr keys [id] [--all]            where to get each key, env var names, gh secret lines
+  odr doctor                       what is installed, connected and missing
+  odr connect <id>                 signup and credential checklist
+  odr connect <id> --done [--plan p] [--max-usd-month n] [--surfaces a,b] [--oss-program]
+  odr disconnect <id>
 
-Surfaces: ${SURFACES.join(", ")}
-State:    ${odrHome()} (override with ODR_HOME). No credentials are stored there.
+Registry and planning
+  odr providers [--status s] [--surface s] [--json]
+  odr show <id>
+  odr plan (same request flags as run) [--json]   dry run: which provider, which profile, why
+  odr status [--json]              connected providers and free capacity left
+  odr record <id> --surface <s> --minutes <n>     manual debit for sessions odr did not run
+  odr validate | odr freshness | odr free-tiers [--write|--check] | odr keys-doc [--write|--check]
+
+Default spend policy is free-only: odr refuses rather than pick capacity that could bill.
+State: ${odrHome()} (ODR_HOME). No credentials are stored there.
 `;
 
 function fail(message: string, code = 1): never {
@@ -131,6 +139,8 @@ function cmdConnect(argv: string[]): void {
       surfaces: { type: "string" },
       "oss-program": { type: "boolean" },
       "skip-env-check": { type: "boolean" },
+      plan: { type: "string" },
+      "max-usd-month": { type: "string" },
     },
   });
   const p = need(loadValid(), positionals[0]);
@@ -184,6 +194,15 @@ function cmdConnect(argv: string[]): void {
     connection.surfaces = list as Surface[];
   }
   if (values["oss-program"]) connection.oss_program = true;
+  if (values.plan) {
+    if (!p.allowances.some((a) => a.plan === values.plan)) fail(`${p.id} has no plan "${values.plan}" in the registry`);
+    connection.plan = values.plan;
+  }
+  if (values["max-usd-month"] !== undefined) {
+    const cap = Number(values["max-usd-month"]);
+    if (!(cap >= 0)) fail("--max-usd-month must be 0 or more");
+    connection.max_usd_month = cap;
+  }
   const state = loadState();
   const previous = state.connections[p.id];
   // Keep the original date so a one-time allowance does not look new again.
@@ -238,61 +257,39 @@ function cmdStatus(argv: string[]): void {
     ]);
   }
   console.log(table(rows));
-  console.log("\nEstimates come from sessions recorded with `odr record`, not from the provider's own meter.");
+  console.log("\nLEFT is odr's own count (sessions it ran plus `odr record`), net of open reservations. `odr reconcile <id>` pulls the provider's figure where it has a usage API.");
 }
 
 function cmdPlan(argv: string[]): void {
-  const { values } = parseArgs({
-    args: argv,
-    options: {
-      surface: { type: "string" },
-      minutes: { type: "string" },
-      parallel: { type: "string" },
-      app: { type: "string" },
-      session: { type: "string", default: "odr-session" },
-      json: { type: "boolean" },
-    },
-  });
+  const { values } = parseArgs({ args: argv, options: { ...REQUEST_OPTIONS, json: { type: "boolean" } } });
   const providers = loadValid();
-  const request = {
-    surface: surfaceArg(values.surface),
-    minutes: minutesArg(values.minutes),
-    ...(values.parallel ? { parallel: Number(values.parallel) } : {}),
-  };
+  const request = requestFromFlags(values);
+  if (request.surface && !isSurface(request.surface)) surfaceArg(request.surface);
   const decision = route(request, providers, loadState());
-  const chosen = decision.chosen ? findProvider(providers, decision.chosen.provider) : undefined;
-  const hands = chosen
-    ? planHands(chosen, { surface: request.surface, session: values.session!, ...(values.app ? { app: values.app } : {}) })
-    : undefined;
   if (values.json) {
-    console.log(JSON.stringify({ decision, hands }, null, 2));
+    console.log(JSON.stringify(decision, null, 2));
     if (!decision.chosen) process.exit(3);
     return;
   }
-  console.log(`Request: ${request.minutes} min on ${request.surface}`);
-  console.log(`Order:   ${TYPE_ORDER.join(" > ")}\n`);
-  const rows = [["PROVIDER", "ALLOWANCE", "COST", "LEFT", "RESULT"]];
+  console.log(`Request: ${JSON.stringify(request)}`);
+  console.log(`Order:   free first, then ${TYPE_ORDER.join(" > ")}\n`);
+  const rows = [["PROVIDER", "ALLOWANCE", "PROFILE", "COST", "LEFT", "USD", "RESULT"]];
   for (const c of decision.considered) {
-    if (c.skip === "not_connected" || c.skip === "surface_not_offered") continue;
+    if (c.skip === "not_connected" || c.skip === "surface_not_offered" || c.skip === "not_selected") continue;
     rows.push([
       c.provider,
-      `${c.type} ${c.unit}`,
+      `${c.plan ? `${c.plan} ` : ""}${c.type} ${c.unit}`,
+      c.profile ?? "-",
       String(c.cost),
-      Number.isFinite(c.remaining) ? String(c.remaining) : "unlimited",
-      c.eligible ? "eligible" : `skipped: ${c.skip}`,
+      Number.isFinite(c.remaining) ? `${c.remaining}${c.basis === "local_estimate" ? " (est)" : ""}` : "unlimited",
+      String(c.usd),
+      c.eligible ? "eligible" : `skipped: ${c.skip}${c.detail ? ` (${c.detail})` : ""}`,
     ]);
   }
   if (rows.length > 1) console.log(`${table(rows)}\n`);
   console.log(decision.reason);
-  if (!hands || !decision.chosen) process.exit(3);
-  console.log("\nDry run. Nothing was started and nothing was debited. To drive the session:");
-  for (const r of hands.requires) console.log(`  needs: ${r}`);
-  if (hands.envMissing.length) console.log(`  not set: ${hands.envMissing.join(", ")}`);
-  for (const c of hands.commands) console.log(`  $ ${c}`);
-  for (const n of hands.notes) console.log(`  note: ${n}`);
-  console.log(
-    `\nAfterwards: odr record ${decision.chosen.provider} --surface ${request.surface} --minutes <actual minutes>`,
-  );
+  if (!decision.chosen) process.exit(3);
+  console.log("\nDry run. Nothing was reserved. `odr run` with the same flags allocates it.");
 }
 
 function cmdRecord(argv: string[]): void {
@@ -348,6 +345,22 @@ async function cmdFreeTiers(argv: string[]): Promise<void> {
   } else process.stdout.write(md);
 }
 
+async function cmdKeysDoc(argv: string[]): Promise<void> {
+  const { values } = parseArgs({ args: argv, options: { write: { type: "boolean" }, check: { type: "boolean" } } });
+  const { readFileSync, writeFileSync, existsSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const { REPO_ROOT } = await import("../registry/load.js");
+  const file = join(REPO_ROOT, "docs", "keys.md");
+  const md = keysMarkdown(loadValid());
+  if (values.write) {
+    writeFileSync(file, md);
+    console.log(`wrote ${file}`);
+  } else if (values.check) {
+    if (!existsSync(file) || readFileSync(file, "utf8") !== md) fail("docs/keys.md is out of date. Run `npm run docs:keys`.");
+    console.log("docs/keys.md is up to date");
+  } else process.stdout.write(md);
+}
+
 async function main(): Promise<void> {
   const [command, ...rest] = process.argv.slice(2);
   switch (command) {
@@ -379,9 +392,25 @@ async function main(): Promise<void> {
     case "use":
       return cmdRecord(rest);
     case "run":
+      return cmdRun(rest, loadValid());
+    case "sessions":
+      return cmdSessions(rest);
+    case "session":
+      if (rest[0] === "forget") return cmdForget(rest.slice(1));
+      return fail("usage: odr session forget <id>");
+    case "sweep":
+      return cmdSweep(rest, loadValid());
+    case "reconcile":
+      return cmdReconcile(rest, loadValid());
+    case "keys":
+      return cmdKeys(rest, loadValid());
+    case "keys-doc":
+      return cmdKeysDoc(rest);
+    case "doctor":
+      return cmdDoctor(loadValid());
     case "mcp":
     case "proxy":
-      fail(`\`${command}\` is not implemented yet. See ROADMAP.md. \`odr plan\` prints the commands to run by hand.`, 2);
+      fail(`\`${command}\` is not implemented yet. See ROADMAP.md.`, 2);
     default:
       fail(`unknown command "${command}". Run \`odr help\`.`);
   }

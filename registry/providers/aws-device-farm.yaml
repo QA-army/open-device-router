@@ -70,7 +70,8 @@ credentials:
     - AWS_SESSION_TOKEN
   source: https://agent-device.dev/docs/aws-device-farm
   notes: Standard AWS credential chain. Prefer short-lived role credentials over long-lived user keys.
-    A CloudFormation quick-create link that provisions a least-privilege role is proposed and not built.
+    A CloudFormation quick-create link that provisions a least-privilege role is proposed and not
+    built.
 allowances:
   - type: one_time
     amount: 1000
@@ -80,20 +81,24 @@ allowances:
     source: https://aws.amazon.com/device-farm/faqs/
     notes: The pricing page describes 1,000 minutes as a limited-time offer in place of the standard
       250. Managed Appium endpoint sessions run up to 150 minutes with a 5-minute idle timeout.
+    overage: bills
+    overage_usd_per_minute: 0.17
+    overage_source: https://aws.amazon.com/device-farm/pricing/
 paid:
   summary: $0.17 per device minute; unmetered plan $250.00 per device slot per month; desktop browser
     testing $0.005 per instance minute.
   source: https://aws.amazon.com/device-farm/pricing/
-notes: Desktop browser testing is a separate, billed product with no free allowance listed, so it is not
-  a routed surface here.
+notes: Desktop browser testing is a separate, billed product with no free allowance listed, so it is
+  not a routed surface here.
 policy:
   max_accounts_per_org: 1
   benchmark_publication: allowed_with_replication
   third_party_access: unknown
   terms_url: https://aws.amazon.com/service-terms/
   terms_checked_note: Service Terms last updated 2026-11-19, read 2026-11-22.
-  notes: Section 1.8 permits benchmarks; anyone who discloses one must include "all information necessary
-    to replicate such Benchmark" and accepts that AWS may benchmark their products in return.
+  notes: Section 1.8 permits benchmarks; anyone who discloses one must include "all information
+    necessary to replicate such Benchmark" and accepts that AWS may benchmark their products in
+    return.
 sources:
   - https://aws.amazon.com/device-farm/faqs/
   - https://aws.amazon.com/device-farm/pricing/
@@ -101,3 +106,45 @@ sources:
   - https://docs.aws.amazon.com/devicefarm/latest/developerguide/appium-endpoint-interaction.html
   - https://aws.amazon.com/service-terms/
   - https://agent-device.dev/docs/aws-device-farm
+profiles:
+  - id: aws-any-ios
+    platform: ios
+    kind: real
+    model: '*'
+    os: '*'
+    evidence: vendor-documented
+    source: https://agent-device.dev/docs/device-clouds
+    notes: Any device in the Device Farm remote-access pool for the configured project.
+  - id: aws-any-android
+    platform: android
+    kind: real
+    model: '*'
+    os: '*'
+    evidence: vendor-documented
+    source: https://agent-device.dev/docs/device-clouds
+    notes: Any device in the Device Farm remote-access pool for the configured project.
+control:
+  driver: agent-device
+  package: agent-device
+  min_version: 0.21.0
+  lease_provider: aws-device-farm
+  inputs:
+    - screenshot
+    - tap
+    - type
+    - swipe
+    - key
+    - launch
+  keys:
+    - enter
+    - home
+    - back
+  screenshot: whole_session
+  build_formats: []
+  install: none
+  closure_check: driver
+  max_session_minutes: 150
+  evidence: vendor-documented
+  source: https://agent-device.dev/docs/device-clouds
+  notes: The app is passed as an uploaded Device Farm ARN (`--aws-app-arn`); there is no install after
+    allocation. Billed after the trial, so free-only routing never picks it.

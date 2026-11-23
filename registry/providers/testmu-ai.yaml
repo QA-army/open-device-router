@@ -23,8 +23,8 @@ hands:
     - LT_USERNAME
     - LT_ACCESS_KEY
   source: https://agent-device.dev/docs/device-clouds
-  notes: WebDriver sessions. Emulators and simulators by default; real devices with `--provider-device-type
-    real`.
+  notes: WebDriver sessions. Emulators and simulators by default; real devices with
+    `--provider-device-type real`.
 signup:
   required: true
   url: https://accounts.lambdatest.com/register
@@ -61,6 +61,7 @@ allowances:
     max_parallel: 2
     scope: Lifetime automation minutes on the free plan. Does not renew.
     source: https://www.testmuai.com/pricing/
+    overage: unknown
 policy:
   max_accounts_per_org: 1
   benchmark_publication: unknown

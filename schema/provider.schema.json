@@ -44,6 +44,44 @@
         "desktop-browser",
         "mobile-browser"
       ]
+    },
+    "input": {
+      "enum": [
+        "screenshot",
+        "tap",
+        "type",
+        "swipe",
+        "key",
+        "install",
+        "launch"
+      ]
+    },
+    "key": {
+      "enum": [
+        "enter",
+        "backspace",
+        "tab",
+        "home",
+        "back"
+      ]
+    },
+    "build_format": {
+      "description": "apk = Android package. app-zip = iOS Simulator .app as .zip/.tar.gz. app = unpacked iOS Simulator .app directory. ipa = signed iOS device build. aab = Android App Bundle.",
+      "enum": [
+        "apk",
+        "aab",
+        "app-zip",
+        "app",
+        "ipa"
+      ]
+    },
+    "evidence": {
+      "enum": [
+        "observed",
+        "vendor-documented",
+        "proposed",
+        "unknown"
+      ]
     }
   },
   "properties": {
@@ -92,7 +130,8 @@
             "cdp-passthrough",
             "webdriver-passthrough",
             "playwright-connect",
-            "unknown"
+            "unknown",
+            "appetize-cli"
           ]
         },
         "surfaces": {
@@ -304,7 +343,8 @@
         "required": [
           "type",
           "unit",
-          "source"
+          "source",
+          "overage"
         ],
         "properties": {
           "type": {
@@ -399,6 +439,29 @@
           },
           "notes": {
             "type": "string"
+          },
+          "plan": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$",
+            "description": "Plan this allowance belongs to. Omit for the default (free) plan. `odr connect <id> --plan <plan>` selects it."
+          },
+          "overage": {
+            "description": "What happens when the allowance runs out. stops = the provider refuses further use; throttled = slower, never billed; bills = metered charges; not_applicable = no quota; unknown = not verified. free-only routing refuses bills and unknown.",
+            "enum": [
+              "stops",
+              "throttled",
+              "bills",
+              "not_applicable",
+              "unknown"
+            ]
+          },
+          "overage_usd_per_minute": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Metered price after the allowance. Needed for budget routing."
+          },
+          "overage_source": {
+            "$ref": "#/definitions/url"
           }
         }
       }
@@ -468,6 +531,198 @@
       "uniqueItems": true,
       "items": {
         "$ref": "#/definitions/url"
+      }
+    },
+    "profiles": {
+      "description": "Exact device profiles a session can get. model or os may be * when any installed device works (local, CI runners).",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "platform",
+          "kind",
+          "model",
+          "os",
+          "evidence"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "platform": {
+            "enum": [
+              "ios",
+              "android",
+              "web"
+            ]
+          },
+          "kind": {
+            "enum": [
+              "simulator",
+              "emulator",
+              "real",
+              "browser"
+            ]
+          },
+          "model": {
+            "type": "string"
+          },
+          "os": {
+            "type": "string"
+          },
+          "provider_device": {
+            "type": "string",
+            "description": "The provider's own device id, passed on allocation."
+          },
+          "logical": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "width",
+              "height"
+            ],
+            "properties": {
+              "width": {
+                "type": "integer"
+              },
+              "height": {
+                "type": "integer"
+              }
+            }
+          },
+          "pixels": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "width",
+              "height"
+            ],
+            "properties": {
+              "width": {
+                "type": "integer"
+              },
+              "height": {
+                "type": "integer"
+              }
+            }
+          },
+          "evidence": {
+            "$ref": "#/definitions/evidence"
+          },
+          "observed_at": {
+            "$ref": "#/definitions/date"
+          },
+          "source": {
+            "$ref": "#/definitions/url"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "control": {
+      "description": "How odr drives a session. Only providers with a control block can be allocated through the SDK or `odr run`.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "driver",
+        "inputs",
+        "screenshot",
+        "build_formats",
+        "install",
+        "closure_check",
+        "evidence",
+        "source"
+      ],
+      "properties": {
+        "driver": {
+          "enum": [
+            "agent-device",
+            "appetize-cli"
+          ]
+        },
+        "package": {
+          "type": "string"
+        },
+        "min_version": {
+          "type": "string"
+        },
+        "lease_backend": {
+          "enum": [
+            "ios-simulator",
+            "ios-instance",
+            "android-instance",
+            "harmonyos-instance",
+            "macos-app"
+          ]
+        },
+        "lease_provider": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/definitions/input"
+          }
+        },
+        "keys": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/definitions/key"
+          }
+        },
+        "screenshot": {
+          "description": "whole_session = a screenshot can be taken at any time while the session is open; odr checks it at start and on every heartbeat.",
+          "enum": [
+            "whole_session",
+            "unknown"
+          ]
+        },
+        "build_formats": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/definitions/build_format"
+          }
+        },
+        "install": {
+          "description": "after_allocation = install onto the held device; upload_before_allocation = upload to the provider, then start the session with that build; none.",
+          "enum": [
+            "after_allocation",
+            "upload_before_allocation",
+            "none"
+          ]
+        },
+        "closure_check": {
+          "description": "How odr proves the session ended. provider_api = provider history says ended; driver = the driver reports the lease released; none.",
+          "enum": [
+            "provider_api",
+            "driver",
+            "none"
+          ]
+        },
+        "usage_api": {
+          "$ref": "#/definitions/url"
+        },
+        "max_session_minutes": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "evidence": {
+          "$ref": "#/definitions/evidence"
+        },
+        "source": {
+          "$ref": "#/definitions/url"
+        },
+        "notes": {
+          "type": "string"
+        }
       }
     }
   }

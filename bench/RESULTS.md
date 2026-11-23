@@ -4,7 +4,7 @@
 
 Method, definitions and limits: [METHODOLOGY.md](METHODOLOGY.md). Raw data: [results/](results/).
 
-## Cold boot
+## Cold boot (device only)
 
 All runs to date, pooled. p95 is shown only from 20 successful samples up. "Failed boots" counts samples where the device did not finish booting or could not return a screenshot.
 

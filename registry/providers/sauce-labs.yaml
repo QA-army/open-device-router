@@ -31,7 +31,8 @@ signup:
   card_required: false
   phone_required: unknown
   work_email_required: unknown
-  notes: The email signup form only renders after choosing "Sign up with email"; its fields were not captured.
+  notes: The email signup form only renders after choosing "Sign up with email"; its fields were not
+    captured.
 credentials:
   kind: username_access_key
   acquire: manual_copy
@@ -46,10 +47,12 @@ allowances:
     expires_days: 28
     scope: Automated and live testing minutes in the 28-day trial
     source: https://saucelabs.com/sign-up
+    overage: unknown
   - type: oss_program
     unit: unlimited
     scope: Open Sauce, for qualifying open-source projects
     source: https://saucelabs.com/doc/support-policy
+    overage: not_applicable
 policy:
   max_accounts_per_org: 1
   benchmark_publication: unknown

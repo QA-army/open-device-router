@@ -23,6 +23,7 @@ allowances:
     max_parallel: 10
     scope: Signup credit, one per person
     source: https://browser-use.com/pricing
+    overage: unknown
 paid:
   summary: $0.06 per browser hour, billed by the minute.
   source: https://browser-use.com/pricing

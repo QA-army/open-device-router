@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/QA-army/opendevicerouter/bench/schema/session.schema.json",
+  "title": "OpenDeviceRouter session benchmark result",
+  "description": "One file per session benchmark run, written by bench/runners/session.mjs from session receipts. Never written by hand.",
+  "type": "object",
+  "required": ["schema", "provider", "platform", "measurement", "odr_version", "started_at", "finished_at", "harness", "environment", "request", "build", "samples"],
+  "properties": {
+    "schema": { "const": "odr.bench.session/v1" },
+    "provider": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "platform": { "enum": ["ios", "android"] },
+    "measurement": { "const": "session" },
+    "odr_version": { "type": "string" },
+    "started_at": { "type": "string" },
+    "finished_at": { "type": "string" },
+    "harness": {
+      "type": "object",
+      "required": ["repository", "commit", "script", "run_url"],
+      "properties": { "repository": { "type": "string" }, "commit": { "type": "string" }, "script": { "type": "string" }, "run_url": { "type": ["string", "null"] } }
+    },
+    "environment": { "type": "object", "required": ["runner_label", "tools"] },
+    "request": { "type": "object", "required": ["minutes"] },
+    "build": { "type": ["object", "null"] },
+    "samples": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["n", "outcome", "timings_ms", "hold"],
+        "properties": {
+          "n": { "type": "integer", "minimum": 1 },
+          "outcome": { "enum": ["ok", "failed", "cancelled", "worker_lost", "refused"] },
+          "timings_ms": {
+            "type": "object",
+            "additionalProperties": { "type": "number", "minimum": 0 }
+          },
+          "hold": {
+            "type": "object",
+            "required": ["seconds", "screenshots_ok", "screenshots_failed", "max_gap_ms"],
+            "properties": {
+              "seconds": { "type": "number" },
+              "screenshots_ok": { "type": "integer", "minimum": 0 },
+              "screenshots_failed": { "type": "integer", "minimum": 0 },
+              "max_gap_ms": { "type": "number", "minimum": 0 }
+            }
+          },
+          "tap_ms": { "type": "number" },
+          "tap_frame_change": { "type": "number", "minimum": 0, "maximum": 1 },
+          "closure": { "enum": ["verified", "unverified", "failed", "not_started"] },
+          "closure_method": { "type": "string" },
+          "health": { "type": "object" },
+          "device": { "type": ["object", "null"] },
+          "route": { "type": ["object", "null"] },
+          "receipt_id": { "type": "string" },
+          "error": { "type": "object" }
+        }
+      }
+    }
+  }
+}

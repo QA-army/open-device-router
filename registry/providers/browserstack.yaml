@@ -46,8 +46,8 @@ signup:
   card_required: unknown
   phone_required: unknown
   work_email_required: true
-  notes: Social sign-in buttons did not render without interaction on the check date; re-check in a real
-    browser session.
+  notes: Social sign-in buttons did not render without interaction on the check date; re-check in a
+    real browser session.
 credentials:
   kind: username_access_key
   acquire: manual_copy
@@ -66,6 +66,7 @@ allowances:
       - mobile-browser
     source: https://www.browserstack.com/users/sign_up
     notes: The trial FAQ lists 60 Automate minutes; confirm in the account after connecting.
+    overage: unknown
   - type: one_time
     amount: 100
     unit: device_minute
@@ -74,27 +75,30 @@ allowances:
       - android-real
       - ios-real
     source: https://www.browserstack.com/users/sign_up
+    overage: unknown
   - type: one_time
     amount: 30
     unit: minute
     manual_only: true
     scope: Live and App Live, 30 minutes each (trial)
     source: https://www.browserstack.com/users/sign_up
+    overage: unknown
   - type: oss_program
     unit: unlimited
     max_parallel: 5
     scope: Qualifying open-source projects, by application
     source: https://www.browserstack.com/open-source
+    overage: not_applicable
 policy:
   max_accounts_per_org: 1
   benchmark_publication: restricted
   third_party_access: restricted
   terms_url: https://www.browserstack.com/terms
   terms_checked_note: Terms last updated 2026-02-13, read 2026-11-22.
-  notes: Terms say the customer will not "publicly disseminate information regarding the performance of
-    the Services", will not "provide access to or sublicense the Services to a third party", and that
-    trials are "solely for Customer's use to determine whether to purchase a paid subscription". Excluded
-    from the public benchmark unless BrowserStack gives written permission.
+  notes: Terms say the customer will not "publicly disseminate information regarding the performance
+    of the Services", will not "provide access to or sublicense the Services to a third party", and
+    that trials are "solely for Customer's use to determine whether to purchase a paid
+    subscription". Excluded from the public benchmark unless BrowserStack gives written permission.
 sources:
   - https://www.browserstack.com/users/sign_up
   - https://www.browserstack.com/support/faq/plans-pricing/plans/what-do-i-get-with-a-free-trial

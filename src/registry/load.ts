@@ -97,6 +97,27 @@ export function checkPolicy(p: Provider, file: string, now: Date): Issue[] {
   });
   if (p.paid && !p.sources.includes(p.paid.source)) err("paid.source must also appear in sources");
 
+  const c = p.control;
+  if (c) {
+    const inputs = new Set(c.inputs);
+    if (inputs.has("key") !== Boolean(c.keys?.length)) err("control: inputs includes key exactly when keys is non-empty");
+    if ((c.install === "none") !== (c.build_formats.length === 0)) err("control: install none exactly when build_formats is empty");
+    if (c.install !== "none" && !inputs.has("install")) err("control: install path set, so inputs must include install");
+    if (!inputs.has("screenshot")) err("control: inputs must include screenshot (the session guarantee)");
+    if (!p.profiles?.length) err("control needs at least one device profile");
+    if (c.lease_backend && c.driver !== "agent-device") err("control.lease_backend is only for the agent-device driver");
+    if (p.status === "launch" && c.screenshot !== "whole_session" && p.id !== "local") warn("control.screenshot is not whole_session");
+  } else if (p.status === "launch") {
+    warn("launch provider has no control block, so odr run cannot allocate it");
+  }
+  const ids = new Set<string>();
+  for (const prof of p.profiles ?? []) {
+    if (ids.has(prof.id)) err(`profiles: duplicate id ${prof.id}`);
+    ids.add(prof.id);
+    if (prof.evidence === "observed" && !prof.observed_at) err(`profiles.${prof.id}: observed needs observed_at`);
+    if (prof.evidence === "vendor-documented" && !prof.source) err(`profiles.${prof.id}: vendor-documented needs source`);
+  }
+
   return issues;
 }
 

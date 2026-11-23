@@ -60,11 +60,13 @@ allowances:
     expires_days: 28
     scope: Free trial
     source: https://testingbot.com/users/sign_up
+    overage: unknown
   - type: oss_program
     unit: unlimited
     max_parallel: 2
     scope: Public, non-commercial, OSI-licensed projects, by application
     source: https://testingbot.com/open-source
+    overage: not_applicable
 policy:
   max_accounts_per_org: 1
   benchmark_publication: unknown

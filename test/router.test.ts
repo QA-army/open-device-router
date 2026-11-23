@@ -5,7 +5,6 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { costInUnits, emptyState, loadState, remainingFor, saveState, type State } from "../src/core/ledger.js";
 import { route } from "../src/core/router.js";
-import { planHands, platformFor } from "../src/hands/agent-device.js";
 import { findProvider, loadRegistry } from "../src/registry/load.js";
 
 const { providers } = loadRegistry();
@@ -21,7 +20,7 @@ function stateWith(...ids: string[]): State {
 test("nothing connected means no route and no paid fallback", () => {
   const d = route({ surface: "ios-simulator", minutes: 10 }, providers, emptyState(), now);
   assert.equal(d.chosen, undefined);
-  assert.match(d.reason, /no paid path/);
+  assert.match(d.reason, /refuses rather than risk a bill/);
 });
 
 test("local hardware is used before any cloud allowance", () => {
@@ -64,9 +63,19 @@ test("a session longer than the provider cap is not routed there", () => {
   assert.equal(d.considered.find((c) => c.provider === "aws-device-farm")?.skip, "session_longer_than_cap");
 });
 
-test("real devices route to AWS Device Farm when it is the only connected real-device provider", () => {
+test("free-only refuses AWS Device Farm: the trial bills after it runs out and has no usage API", () => {
   const d = route({ surface: "android-real", minutes: 30 }, providers, stateWith("aws-device-farm", "revyl"), now);
+  assert.equal(d.chosen, undefined);
+  assert.equal(d.considered.find((c) => c.provider === "aws-device-farm")?.skip, "overage_bills_remaining_unverified");
+});
+
+test("a budget lets AWS Device Farm serve real devices, priced as if every minute bills", () => {
+  const d = route({ surface: "android-real", minutes: 30, spend: { mode: "budget", max_usd: 10 } }, providers, stateWith("aws-device-farm"), now);
   assert.equal(d.chosen?.provider, "aws-device-farm");
+  assert.equal(d.chosen?.usd, 5.1);
+  const tight = route({ surface: "android-real", minutes: 30, spend: { mode: "budget", max_usd: 1 } }, providers, stateWith("aws-device-farm"), now);
+  assert.equal(tight.chosen, undefined);
+  assert.equal(tight.considered.find((c) => c.provider === "aws-device-farm")?.skip, "over_budget");
 });
 
 test("providers without a verified control path are never chosen", () => {
@@ -127,34 +136,61 @@ test("state round-trips through disk and stores no secrets", () => {
   assert.deepEqual(Object.keys(loadState(home).connections.revyl!), ["connected_at"]);
 });
 
-test("hands plan for a cloud provider is an agent-device invocation", () => {
-  const plan = planHands(findProvider(providers, "revyl")!, { surface: "ios-simulator", session: "s1", app: "com.example.app", env: {} });
-  assert.deepEqual(plan.commands, [
-    "agent-device plugins add @agent-device/revyl",
-    "export AGENT_DEVICE_SESSION=s1",
-    "agent-device connect revyl --platform ios",
-    "agent-device open com.example.app",
-    "agent-device snapshot -i",
-    "agent-device close",
-    "agent-device disconnect",
-  ]);
-  assert.deepEqual(plan.envMissing, ["REVYL_API_KEY"]);
+test("OS ranges and prefixes match profile versions", async () => {
+  const { osMatches } = await import("../src/core/router.js");
+  assert.ok(osMatches("18.2", "18"));
+  assert.ok(osMatches("18.2", ">=17"));
+  assert.ok(!osMatches("16.4", ">=17"));
+  assert.ok(osMatches("18.2.1", "18.2"));
+  assert.ok(!osMatches("18.20", "18.2"));
+  assert.ok(osMatches("*", "18.2"));
 });
 
-test("hands plan for local devices has no connect step", () => {
-  const plan = planHands(findProvider(providers, "local")!, { surface: "android-emulator", session: "s1", env: {} });
-  assert.ok(!plan.commands.some((c) => c.includes("connect")));
-  assert.ok(plan.commands.includes("agent-device open <bundle-id-or-package> --platform android"));
+test("driving a device requires a control path that covers every input", () => {
+  const swipe = route({ platform: "ios", minutes: 5, needs: ["screenshot", "tap", "swipe", "type"] }, providers, stateWith("revyl", "limrun"), now);
+  assert.equal(swipe.considered.find((c) => c.provider === "revyl")?.skip, "input_not_supported");
+  assert.equal(swipe.chosen?.provider, "limrun");
 });
 
-test("pass-through providers get no agent-device commands", () => {
-  const plan = planHands(findProvider(providers, "browserbase")!, { surface: "desktop-browser", session: "s1", env: {} });
-  assert.deepEqual(plan.commands, []);
-  assert.match(plan.notes.join(" "), /not implemented/);
+test("a build format the provider cannot install is refused", () => {
+  const d = route({ platform: "ios", minutes: 5, build_format: "ipa" }, providers, stateWith("local"), now);
+  assert.equal(d.considered.find((c) => c.provider === "local")?.skip, "build_format_not_supported");
 });
 
-test("surface maps to an agent-device platform", () => {
-  assert.equal(platformFor("ios-real"), "ios");
-  assert.equal(platformFor("android-emulator"), "android");
-  assert.equal(platformFor("desktop-browser"), "web");
+test("model and OS route to a matching device profile", () => {
+  const s = stateWith("github-actions");
+  const d = route({ platform: "ios", model: "iPhone 17", os: "26", minutes: 5, require_control: true }, providers, s, now);
+  assert.equal(d.chosen?.provider, "github-actions");
+  assert.ok(d.chosen?.profile);
+  const none = route({ platform: "ios", model: "iPhone 17", os: "15", minutes: 5, require_control: true }, providers, s, now);
+  assert.equal(none.considered.find((c) => c.provider === "github-actions")?.skip, "no_matching_profile");
+});
+
+test("open reservations count against remaining allowance and the parallel cap", () => {
+  const s = stateWith("revyl");
+  const base = { provider: "revyl", allowance: 0, surface: "ios-simulator" as const, usd: 0, created_at: "2026-11-20T00:00:00Z", heartbeat_at: "2026-11-20T00:00:00Z", expires_at: "2026-11-23T00:00:00Z", owner: { pid: 1, host: "h" } };
+  s.reservations.push({ ...base, id: "r_0000000000000001", minutes: 1195, amount: 1195, status: "active" });
+  const d = route({ surface: "ios-simulator", minutes: 10 }, providers, s, now);
+  assert.equal(d.considered.find((c) => c.provider === "revyl")?.skip, "not_enough_remaining");
+  s.reservations[0]!.status = "closed";
+  assert.equal(route({ surface: "ios-simulator", minutes: 10 }, providers, s, now).chosen?.provider, "revyl");
+});
+
+test("Appetize free-only needs a plan-matched allowance, and starter bills only after a fresh reconcile", () => {
+  const s = stateWith("appetize");
+  s.connections.appetize!.plan = "starter";
+  const req = { platform: "android" as const, minutes: 5, require_control: true };
+  const stale = route(req, providers, s, now);
+  assert.equal(stale.considered.find((c) => c.provider === "appetize" && c.plan === "starter")?.skip, "overage_bills_remaining_unverified");
+  assert.equal(stale.considered.find((c) => c.provider === "appetize" && c.plan === undefined)?.skip, "other_plan");
+  s.reconciliations.push({ provider: "appetize", at: "2026-11-22T11:00:00Z", period: "2026-11", provider_minutes: 100, local_minutes: 0 });
+  const fresh = route(req, providers, s, now);
+  assert.equal(fresh.chosen?.provider, "appetize");
+  assert.equal(fresh.chosen?.basis, "provider_reconciled");
+  assert.equal(fresh.chosen?.remaining, 400);
+});
+
+test("Appetize Free never exceeds its 3-minute session cap", () => {
+  const d = route({ platform: "ios", minutes: 5, require_control: true }, providers, stateWith("appetize"), now);
+  assert.equal(d.considered.find((c) => c.provider === "appetize" && c.plan === undefined)?.skip, "session_longer_than_cap");
 });

@@ -24,6 +24,7 @@ allowances:
     scope: Free plan
     source: https://anchorbrowser.io/pricing
     notes: Worded as "5 credits per month"; the page does not state the credit-to-time conversion.
+    overage: unknown
 paid:
   summary: Browser time shown at $0.09 per hour in the pricing calculator.
   source: https://anchorbrowser.io/pricing

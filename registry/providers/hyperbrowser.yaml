@@ -23,8 +23,9 @@ allowances:
     max_parallel: 1
     scope: Free plan
     source: https://www.hyperbrowser.ai/pricing
-    notes: Described as "Enough for 50 browser hours or 5,000 fetched pages at base rates". The page does
-      not say whether free credits renew.
+    notes: Described as "Enough for 50 browser hours or 5,000 fetched pages at base rates". The page
+      does not say whether free credits renew.
+    overage: unknown
 paid:
   summary: Browser usage listed at $0.10 per hour.
   source: https://www.hyperbrowser.ai/pricing

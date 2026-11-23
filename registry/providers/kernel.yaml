@@ -26,6 +26,7 @@ allowances:
     scope: Free plan, no card needed
     source: https://www.kernel.sh/pricing
     notes: Worded as "$5 / month free credits".
+    overage: unknown
 paid:
   summary: Usage listed at $0.0000166667 per GB-second.
   source: https://www.kernel.sh/pricing

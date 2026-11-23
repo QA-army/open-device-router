@@ -38,6 +38,8 @@ const pct = (n, d) => (d === 0 ? "n/a" : `${((n / d) * 100).toFixed(1)}%`);
 
 const ajv = new Ajv({ allErrors: true, strict: true });
 const validate = ajv.compile(JSON.parse(readFileSync(join(here, "schema", "result.schema.json"), "utf8")));
+const validateSession = new Ajv({ allErrors: true, strict: false }).compile(JSON.parse(readFileSync(join(here, "schema", "session.schema.json"), "utf8")));
+const sessions = [];
 
 const results = [];
 const problems = [];
@@ -48,6 +50,16 @@ for (const file of walk(resultsDir)) {
     data = JSON.parse(readFileSync(file, "utf8"));
   } catch (e) {
     problems.push(`${rel}: not valid JSON (${e.message})`);
+    continue;
+  }
+  if (data.schema === "odr.bench.session/v1") {
+    if (!validateSession(data)) {
+      for (const e of validateSession.errors) problems.push(`${rel}: ${e.instancePath || "/"} ${e.message}`);
+      continue;
+    }
+    if (!rel.startsWith(join("results", data.provider, "session", data.platform))) problems.push(`${rel}: must live under results/${data.provider}/session/${data.platform}/`);
+    if (data.harness.commit === "uncommitted" || !data.harness.run_url) problems.push(`${rel}: only results from a public CI run with a commit and run URL are published`);
+    sessions.push({ rel, ...data });
     continue;
   }
   if (!validate(data)) {
@@ -79,6 +91,50 @@ lines.push("");
 lines.push("Method, definitions and limits: [METHODOLOGY.md](METHODOLOGY.md). Raw data: [results/](results/).");
 lines.push("");
 
+if (sessions.length > 0) {
+  lines.push("## Sessions: Run to first frame");
+  lines.push("");
+  lines.push(
+    "Full lifecycle through the SDK: reserve, allocate, install the fixture build, launch, first usable screenshot, hold with a screenshot every 5 s, one tap, release, verify closure. \"Run to first frame\" starts when `allocate()` is called. All runs pooled; medians only.",
+  );
+  lines.push("");
+  lines.push("| Provider | Platform | Device | Runs | Samples | OK + closed | Run to first frame | Allocate | Install | Launch | First frame | Teardown | Dropped | Screenshot misses | Tap changed frame | Last run |");
+  lines.push("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
+  const groups = new Map();
+  for (const r of sessions) {
+    const dev = r.samples.find((s) => s.device)?.device;
+    const key = [r.provider, r.platform, dev ? `${dev.model ?? "?"}, ${dev.os_version ?? "?"}` : "n/a", r.environment.runner_label].join("|");
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  }
+  for (const key of [...groups.keys()].sort()) {
+    const runs = groups.get(key);
+    const [provider, platform, device] = key.split("|");
+    const all = runs.flatMap((r) => r.samples);
+    const good = all.filter((s) => s.outcome === "ok" && s.closure === "verified");
+    const med = (k) => secs(median(good.map((s) => s.timings_ms[k]).filter((v) => v !== undefined)));
+    const dropped = all.filter((s) => s.health?.dropped).length;
+    const misses = all.reduce((n, s) => n + s.hold.screenshots_failed, 0);
+    const shots = all.reduce((n, s) => n + s.hold.screenshots_ok + s.hold.screenshots_failed, 0);
+    const tapped = good.filter((s) => (s.tap_frame_change ?? 0) > 0.01).length;
+    const last = runs.map((r) => r.started_at).sort().at(-1).slice(0, 10);
+    lines.push(
+      `| ${provider} | ${platform} | ${device} | ${runs.length} | ${all.length} | ${good.length} (${pct(good.length, all.length)}) | ${med("run_to_first_frame")} | ${med("allocate")} | ${med("install")} | ${med("launch")} | ${med("first_frame")} | ${med("teardown")} | ${dropped} | ${misses} of ${shots} | ${tapped} of ${good.length} | ${last} |`,
+    );
+  }
+  lines.push("");
+  lines.push("| Started (UTC) | Provider | Platform | Samples | OK + closed | Run to first frame (min / median / max) | Commit | Run | Raw |");
+  lines.push("| --- | --- | --- | --- | --- | --- | --- | --- | --- |");
+  for (const r of [...sessions].sort((a, b) => b.started_at.localeCompare(a.started_at))) {
+    const good = r.samples.filter((s) => s.outcome === "ok" && s.closure === "verified");
+    const t = good.map((s) => s.timings_ms.run_to_first_frame).filter((v) => v !== undefined).sort((a, b) => a - b);
+    lines.push(
+      `| ${r.started_at.slice(0, 16).replace("T", " ")} | ${r.provider} | ${r.platform} | ${r.samples.length} | ${good.length} | ${secs(t[0])} / ${secs(median(t))} / ${secs(t.at(-1))} | \`${r.harness.commit.slice(0, 7)}\` | [run](${r.harness.run_url}) | [json](${r.rel.split("\\").join("/")}) |`,
+    );
+  }
+  lines.push("");
+}
+
 if (results.length === 0) {
   lines.push("No results yet. Nothing has been measured, so there are no numbers to show.");
   lines.push("");
@@ -89,7 +145,7 @@ if (results.length === 0) {
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(r);
   }
-  lines.push("## Cold boot");
+  lines.push("## Cold boot (device only)");
   lines.push("");
   lines.push(
     `All runs to date, pooled. p95 is shown only from ${MIN_FOR_P95} successful samples up. "Failed boots" counts samples where the device did not finish booting or could not return a screenshot.`,

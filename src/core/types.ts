@@ -17,6 +17,7 @@ export type HandsKind =
   | "cdp-passthrough"
   | "webdriver-passthrough"
   | "playwright-connect"
+  | "appetize-cli"
   | "unknown";
 export type AllowanceType =
   | "self_hosted"
@@ -88,6 +89,65 @@ export interface Allowance {
   max_session_minutes?: number;
   max_parallel?: number;
   expires_days?: number;
+  /** Plan this allowance belongs to. Undefined = the default free plan. */
+  plan?: string;
+  overage: Overage;
+  overage_usd_per_minute?: number;
+  overage_source?: string;
+  source: string;
+  notes?: string;
+}
+
+/** stops and throttled never bill. bills means metered charges after the allowance. */
+export type Overage = "stops" | "throttled" | "bills" | "not_applicable" | "unknown";
+
+export type Platform = "ios" | "android" | "web";
+export type DeviceKind = "simulator" | "emulator" | "real" | "browser";
+export const INPUTS = ["screenshot", "tap", "type", "swipe", "key", "install", "launch"] as const;
+export type Input = (typeof INPUTS)[number];
+export const KEYS = ["enter", "backspace", "tab", "home", "back"] as const;
+export type Key = (typeof KEYS)[number];
+export const BUILD_FORMATS = ["apk", "aab", "app-zip", "app", "ipa"] as const;
+export type BuildFormat = (typeof BUILD_FORMATS)[number];
+export type Evidence = "observed" | "vendor-documented" | "proposed" | "unknown";
+
+export interface Size {
+  width: number;
+  height: number;
+}
+
+export interface DeviceProfile {
+  id: string;
+  platform: Platform;
+  kind: DeviceKind;
+  /** `*` = any model the provider offers. */
+  model: string;
+  /** `*` = any OS version. */
+  os: string;
+  provider_device?: string;
+  logical?: Size;
+  pixels?: Size;
+  evidence: Evidence;
+  observed_at?: string;
+  source?: string;
+  notes?: string;
+}
+
+export interface Control {
+  driver: "agent-device" | "appetize-cli";
+  package?: string;
+  min_version?: string;
+  lease_backend?: string;
+  lease_provider?: string;
+  inputs: Input[];
+  keys?: Key[];
+  screenshot: "whole_session" | "unknown";
+  build_formats: BuildFormat[];
+  install: "after_allocation" | "upload_before_allocation" | "none";
+  closure_check: "provider_api" | "driver" | "none";
+  usage_api?: string;
+  max_session_minutes?: number;
+  evidence: Evidence;
   source: string;
   notes?: string;
 }
@@ -119,8 +179,31 @@ export interface Provider {
   allowances: Allowance[];
   paid?: { summary: string; source: string };
   policy: Policy;
+  profiles?: DeviceProfile[];
+  control?: Control;
   notes?: string;
   sources: string[];
+}
+
+export function surfaceOf(platform: Platform, kind: DeviceKind): Surface | undefined {
+  if (platform === "ios") return kind === "simulator" ? "ios-simulator" : kind === "real" ? "ios-real" : undefined;
+  if (platform === "android") return kind === "emulator" ? "android-emulator" : kind === "real" ? "android-real" : undefined;
+  return kind === "browser" ? "desktop-browser" : undefined;
+}
+
+export function deviceOf(surface: Surface): { platform: Platform; kind: DeviceKind } {
+  switch (surface) {
+    case "ios-simulator":
+      return { platform: "ios", kind: "simulator" };
+    case "ios-real":
+      return { platform: "ios", kind: "real" };
+    case "android-emulator":
+      return { platform: "android", kind: "emulator" };
+    case "android-real":
+      return { platform: "android", kind: "real" };
+    default:
+      return { platform: "web", kind: "browser" };
+  }
 }
 
 export function isSurface(value: string): value is Surface {
