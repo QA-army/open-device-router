@@ -396,6 +396,36 @@ function addRow(provider, row) {
     });
   }
 }
+{
+  // Cold boot only (device, no app), pooled per provider + target + runner + device.
+  const gb = new Map();
+  for (const r of results) {
+    const k = [r.provider, r.target, r.environment.runner_label, `${r.device.name}, ${r.device.os_version}`].join("|");
+    if (!gb.has(k)) gb.set(k, []);
+    gb.get(k).push(r);
+  }
+  for (const k of [...gb.keys()].sort()) {
+    const runs = gb.get(k);
+    const [provider, target, runner, device] = k.split("|");
+    const all = runs.flatMap((r) => r.samples);
+    const ok = all.filter((x) => x.ok);
+    addRow(provider, {
+      benchmark: "cold_boot",
+      tier: "ci-verified",
+      platform: target.startsWith("ios") ? "ios" : "android",
+      where: runner,
+      target: device,
+      runs: runs.length,
+      cold: { n: all.length, ok: ok.length, median_run_to_first_frame_ms: null, median_boot_ms: nn(median(ok.map((x) => x.boot_ms))) },
+      warm: null,
+      tap: null,
+      parallel_max_n: null,
+      last_run: runs.map((r) => r.started_at).sort().at(-1),
+      run_urls: [...new Set(runs.map((r) => r.harness.run_url))].sort(),
+      raw: runs.map((r) => `bench/${r.rel.split("\\").join("/")}`),
+    });
+  }
+}
 const leaderboard = {
   schema: "odr.leaderboard/v1",
   generated_by: "bench/summarize.mjs from bench/results/",

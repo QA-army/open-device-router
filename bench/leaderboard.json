@@ -81,6 +81,64 @@
         "bench/results/github-actions/session/ios/2026-11-23T03-09-46-610Z.json",
         "bench/results/github-actions/session/ios/2026-11-23T03-39-28-128Z.json"
       ]
+    },
+    {
+      "provider": "github-actions",
+      "provider_name": "GitHub-hosted runners",
+      "terms_checked": false,
+      "benchmark": "cold_boot",
+      "tier": "ci-verified",
+      "platform": "android",
+      "where": "ubuntu-24.04",
+      "target": "pixel_6, Android API 34",
+      "runs": 2,
+      "cold": {
+        "n": 10,
+        "ok": 10,
+        "median_run_to_first_frame_ms": null,
+        "median_boot_ms": 35502
+      },
+      "warm": null,
+      "tap": null,
+      "parallel_max_n": null,
+      "last_run": "2026-11-22T22:32:59.029Z",
+      "run_urls": [
+        "https://github.com/QA-army/opendevicerouter/actions/runs/45076956078",
+        "https://github.com/QA-army/opendevicerouter/actions/runs/45078316652"
+      ],
+      "raw": [
+        "bench/results/github-actions/android-emulator/20261122T221823Z-45076956078.json",
+        "bench/results/github-actions/android-emulator/20261122T223259Z-45078316652.json"
+      ]
+    },
+    {
+      "provider": "github-actions",
+      "provider_name": "GitHub-hosted runners",
+      "terms_checked": false,
+      "benchmark": "cold_boot",
+      "tier": "ci-verified",
+      "platform": "ios",
+      "where": "macos-15",
+      "target": "iPhone 17, iOS 26.2",
+      "runs": 2,
+      "cold": {
+        "n": 10,
+        "ok": 10,
+        "median_run_to_first_frame_ms": null,
+        "median_boot_ms": 78683
+      },
+      "warm": null,
+      "tap": null,
+      "parallel_max_n": null,
+      "last_run": "2026-11-22T22:32:52.683Z",
+      "run_urls": [
+        "https://github.com/QA-army/opendevicerouter/actions/runs/45076956078",
+        "https://github.com/QA-army/opendevicerouter/actions/runs/45078316652"
+      ],
+      "raw": [
+        "bench/results/github-actions/ios-simulator/20261122T221825Z-45076956078.json",
+        "bench/results/github-actions/ios-simulator/20261122T223252Z-45078316652.json"
+      ]
     }
   ],
   "providers": [
