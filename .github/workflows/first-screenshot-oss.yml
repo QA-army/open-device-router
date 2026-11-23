@@ -1,0 +1,49 @@
+name: first-screenshot on OSS apps
+
+# Builds three open-source iOS apps from source and runs the first-screenshot action on each.
+# Job summary and artifact only; nothing is posted to those projects.
+on:
+  pull_request:
+    paths:
+      - actions/first-screenshot/**
+      - .github/workflows/first-screenshot-oss.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: first-screenshot-oss-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    name: ios (${{ matrix.app.name }})
+    runs-on: macos-26
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - { name: SyncUps, repo: pointfreeco/swift-composable-architecture, project: Examples/SyncUps/SyncUps.xcodeproj, scheme: SyncUps, prepare: "" }
+          - { name: CountriesSwiftUI, repo: nalexn/clean-architecture-swiftui, project: CountriesSwiftUI.xcodeproj, scheme: CountriesSwiftUI, prepare: "" }
+          - { name: IceCubesApp, repo: Dimillian/IceCubesApp, project: IceCubesApp.xcodeproj, scheme: IceCubesApp, prepare: "cp IceCubesApp.xcconfig.template IceCubesApp.xcconfig" }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: ${{ matrix.app.repo }}
+          path: app
+          persist-credentials: false
+      - name: Prepare
+        if: matrix.app.prepare != ''
+        working-directory: app
+        run: ${{ matrix.app.prepare }}
+      - id: shot
+        uses: ./actions/first-screenshot
+        with:
+          platform: ios
+          project: app/${{ matrix.app.project }}
+          scheme: ${{ matrix.app.scheme }}
+          comment: "false"
+      - run: echo "${{ matrix.app.name }} ok=${{ steps.shot.outputs.ok }} launch_ms=${{ steps.shot.outputs.launch-to-first-frame-ms }}"
