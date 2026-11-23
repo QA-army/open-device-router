@@ -1,0 +1,210 @@
+{
+  "schema": "odr.bench.session/v1",
+  "provider": "github-actions",
+  "platform": "android",
+  "measurement": "session",
+  "odr_version": "0.1.0",
+  "started_at": "2026-11-23T01:26:56.359Z",
+  "finished_at": "2026-11-23T01:38:02.375Z",
+  "harness": {
+    "repository": "QA-army/open-device-router",
+    "commit": "9dfe80c3312c80efe8661dfd719b57793aeb5673",
+    "script": "bench/runners/session.mjs",
+    "run_url": "https://github.com/QA-army/open-device-router/actions/runs/45094507461"
+  },
+  "environment": {
+    "runner_label": "ubuntu-24.04",
+    "image_os": "ubuntu24",
+    "image_version": "20261116.133.1",
+    "os": "linux",
+    "os_release": "7.0.0-1014-aws",
+    "arch": "x64",
+    "cpu_model": "Intel(R) Xeon(R) 6975P-C",
+    "cpu_count": 4,
+    "memory_gb": 15.3,
+    "tools": {
+      "node": "v22.23.5",
+      "agent-device": "0.21.41",
+      "@appetize/cli": "not installed"
+    }
+  },
+  "request": {
+    "provider": "github-actions",
+    "platform": "android",
+    "build_format": "apk",
+    "needs": [
+      "screenshot",
+      "tap"
+    ],
+    "minutes": 6,
+    "require_control": true,
+    "spend": {
+      "mode": "free-only"
+    }
+  },
+  "build": {
+    "format": "apk",
+    "file": "odr-fixture.apk"
+  },
+  "samples": [
+    {
+      "n": 1,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 100,
+        "allocate": 50258,
+        "install": 4686,
+        "launch": 17013,
+        "teardown": 52,
+        "session": 0
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "max_gap_ms": 0
+      },
+      "receipt_id": "r_a38ccdbb6c6c5ccc",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "android",
+        "kind": "emulator",
+        "model": "sdk_gphone64_x86_64",
+        "os_version": "14",
+        "provider_device": "odr_pixel_6",
+        "device_id": "emulator-5554",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 0,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 133,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "unverified",
+      "closure_method": "driver",
+      "error": {
+        "code": "first_frame_timeout",
+        "message": "no usable screenshot: frame was blank"
+      },
+      "sweep": [
+        {
+          "action": "force_stop_local_devices",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 84,
+        "allocate": 3911,
+        "install": 626,
+        "launch": 5303,
+        "teardown": 2897,
+        "session": 0
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "max_gap_ms": 0
+      },
+      "receipt_id": "r_ba2212172995954c",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "android",
+        "kind": "emulator",
+        "model": "sdk_gphone64_x86_64",
+        "os_version": "14",
+        "provider_device": "odr_pixel_6",
+        "device_id": "emulator-5554",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 0,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 140,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "unverified",
+      "closure_method": "driver",
+      "error": {
+        "code": "first_frame_timeout",
+        "message": "no usable screenshot: frame was blank"
+      },
+      "sweep": [
+        {
+          "action": "force_stop_local_devices",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 56,
+        "allocate": 4513,
+        "install": 507,
+        "launch": 4528,
+        "teardown": 2876,
+        "session": 0
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "max_gap_ms": 0
+      },
+      "receipt_id": "r_84bba0d485e82f6f",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "android",
+        "kind": "emulator",
+        "model": "sdk_gphone64_x86_64",
+        "os_version": "14",
+        "provider_device": "odr_pixel_6",
+        "device_id": "emulator-5554",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 0,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 140,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "unverified",
+      "closure_method": "driver",
+      "error": {
+        "code": "first_frame_timeout",
+        "message": "no usable screenshot: frame was blank"
+      },
+      "sweep": [
+        {
+          "action": "force_stop_local_devices",
+          "ok": true
+        }
+      ]
+    }
+  ]
+}

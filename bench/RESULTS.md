@@ -10,10 +10,13 @@ Full lifecycle through the SDK: reserve, allocate, install the fixture build, la
 
 | Provider | Platform | Device | Runs | Samples | OK + closed | Run to first frame | Allocate | Install | Launch | First frame | Teardown | Dropped | Screenshot misses | Tap changed frame | Last run |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| github-actions | ios | iPhone 17, 26.0.1 | 1 | 3 | 3 (100.0%) | 201.8 s | 162.2 s | 22.4 s | 16.9 s | 3.4 s | 11.2 s | 0 | 0 of 24 | 2 of 3 | 2026-11-23 |
+| github-actions | android | sdk_gphone64_x86_64, 14 | 1 | 3 | 0 (0.0%) | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 of 0 | 0 of 0 | 2026-11-23 |
+| github-actions | ios | iPhone 17, 26.0.1 | 2 | 6 | 6 (100.0%) | 180.4 s | 139.1 s | 21.8 s | 17.8 s | 3.3 s | 9.7 s | 0 | 0 of 49 | 4 of 6 | 2026-11-23 |
 
 | Started (UTC) | Provider | Platform | Samples | OK + closed | Run to first frame (min / median / max) | Commit | Run | Raw |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-23 01:26 | github-actions | android | 3 | 0 | n/a / n/a / n/a | `9dfe80c` | [run](https://github.com/QA-army/open-device-router/actions/runs/45094507461) | [json](results/github-actions/session/android/2026-11-23T01-38-02-375Z.json) |
+| 2026-11-23 01:26 | github-actions | ios | 3 | 3 | 122.9 s / 150.6 s / 300.5 s | `9dfe80c` | [run](https://github.com/QA-army/open-device-router/actions/runs/45094507461) | [json](results/github-actions/session/ios/2026-11-23T01-40-20-690Z.json) |
 | 2026-11-23 00:53 | github-actions | ios | 3 | 3 | 159.0 s / 201.8 s / 288.9 s | `488a10d` | [run](https://github.com/QA-army/open-device-router/actions/runs/45091307145) | [json](results/github-actions/session/ios/2026-11-23T01-08-41-288Z.json) |
 
 ## Cold boot (device only)
