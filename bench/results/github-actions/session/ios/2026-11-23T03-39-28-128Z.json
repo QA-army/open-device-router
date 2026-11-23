@@ -1,0 +1,185 @@
+{
+  "schema": "odr.bench.session/v1",
+  "provider": "github-actions",
+  "platform": "ios",
+  "measurement": "session",
+  "odr_version": "0.1.0",
+  "started_at": "2026-11-23T03:19:11.698Z",
+  "finished_at": "2026-11-23T03:39:28.128Z",
+  "harness": {
+    "repository": "QA-army/open-device-router",
+    "commit": "d5b5fdc81364bb2c76687a0f9f8903d9697a5262",
+    "script": "bench/runners/session.mjs",
+    "run_url": "https://github.com/QA-army/open-device-router/actions/runs/45104480552"
+  },
+  "environment": {
+    "runner_label": "macos-15",
+    "image_os": "macos15",
+    "image_version": "20261118.0550.1",
+    "os": "darwin",
+    "os_release": "24.6.0",
+    "arch": "arm64",
+    "cpu_model": "Apple M1 (Virtual)",
+    "cpu_count": 3,
+    "memory_gb": 7,
+    "tools": {
+      "node": "v22.23.5",
+      "runner_prepared": "yes",
+      "agent-device": "0.21.41",
+      "@appetize/cli": "not installed"
+    }
+  },
+  "request": {
+    "provider": "github-actions",
+    "platform": "ios",
+    "model": "iPhone",
+    "build_format": "app",
+    "needs": [
+      "screenshot",
+      "tap"
+    ],
+    "minutes": 6,
+    "require_control": true,
+    "spend": {
+      "mode": "free-only"
+    }
+  },
+  "build": {
+    "format": "app",
+    "file": "OdrFixture.app"
+  },
+  "samples": [
+    {
+      "n": 1,
+      "outcome": "ok",
+      "timings_ms": {
+        "queue": 218,
+        "allocate": 206142,
+        "install": 38441,
+        "launch": 18740,
+        "first_frame": 7126,
+        "run_to_first_frame": 270674,
+        "teardown": 13150,
+        "session": 85517
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 7,
+        "screenshots_failed": 0,
+        "max_gap_ms": 11892
+      },
+      "tap_ms": 3819,
+      "tap_frame_change": 0.987,
+      "receipt_id": "r_a1a07a5880f1e28b",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-macos15-iphone17-26-2",
+        "surface": "ios-simulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "ios",
+        "kind": "simulator",
+        "model": "iPhone 17",
+        "os_version": "26.0.1",
+        "provider_device": "iPhone 17",
+        "device_id": "97452E4E-610F-48A2-A819-FDA0A45017D2",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 3,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 13,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed"
+    },
+    {
+      "n": 2,
+      "outcome": "ok",
+      "timings_ms": {
+        "queue": 166,
+        "allocate": 111693,
+        "install": 24874,
+        "launch": 18794,
+        "first_frame": 4627,
+        "run_to_first_frame": 160162,
+        "teardown": 10290,
+        "session": 80540
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 7,
+        "screenshots_failed": 0,
+        "max_gap_ms": 11737
+      },
+      "tap_ms": 2358,
+      "tap_frame_change": 0.987,
+      "receipt_id": "r_15c72e38b065b176",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-macos15-iphone17-26-2",
+        "surface": "ios-simulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "ios",
+        "kind": "simulator",
+        "model": "iPhone 17",
+        "os_version": "26.0.1",
+        "provider_device": "iPhone 17",
+        "device_id": "97452E4E-610F-48A2-A819-FDA0A45017D2",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 3,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 13,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed"
+    },
+    {
+      "n": 3,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 167,
+        "teardown": 66,
+        "session": 0
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "max_gap_ms": 0
+      },
+      "receipt_id": "r_d4175c60513fdb4d",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-macos15-iphone17-26-2",
+        "surface": "ios-simulator"
+      },
+      "device": null,
+      "health": {
+        "heartbeats": 0,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed",
+      "error": {
+        "code": "allocate_failed",
+        "message": "Simulator did not finish booting within the startup budget"
+      }
+    }
+  ]
+}

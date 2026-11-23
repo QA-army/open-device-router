@@ -1,0 +1,196 @@
+{
+  "schema": "odr.bench.session/v1",
+  "provider": "github-actions",
+  "platform": "android",
+  "measurement": "session",
+  "odr_version": "0.1.0",
+  "started_at": "2026-11-23T03:13:44.593Z",
+  "finished_at": "2026-11-23T03:19:43.333Z",
+  "harness": {
+    "repository": "QA-army/open-device-router",
+    "commit": "d5b5fdc81364bb2c76687a0f9f8903d9697a5262",
+    "script": "bench/runners/session.mjs",
+    "run_url": "https://github.com/QA-army/open-device-router/actions/runs/45104480552"
+  },
+  "environment": {
+    "runner_label": "ubuntu-24.04",
+    "image_os": "ubuntu24",
+    "image_version": "20261116.133.1",
+    "os": "linux",
+    "os_release": "7.0.0-1014-aws",
+    "arch": "x64",
+    "cpu_model": "Intel(R) Xeon(R) 6975P-C",
+    "cpu_count": 4,
+    "memory_gb": 15.3,
+    "tools": {
+      "node": "v22.23.5",
+      "runner_prepared": "no",
+      "agent-device": "0.21.41",
+      "@appetize/cli": "not installed"
+    }
+  },
+  "request": {
+    "provider": "github-actions",
+    "platform": "android",
+    "build_format": "apk",
+    "needs": [
+      "screenshot",
+      "tap"
+    ],
+    "minutes": 6,
+    "require_control": true,
+    "spend": {
+      "mode": "free-only"
+    }
+  },
+  "build": {
+    "format": "apk",
+    "file": "odr-fixture.apk"
+  },
+  "samples": [
+    {
+      "n": 1,
+      "outcome": "ok",
+      "timings_ms": {
+        "queue": 95,
+        "allocate": 35511,
+        "install": 5943,
+        "launch": 7059,
+        "first_frame": 691,
+        "run_to_first_frame": 49302,
+        "teardown": 4960,
+        "session": 71307
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 12,
+        "screenshots_failed": 0,
+        "max_gap_ms": 5473
+      },
+      "tap_ms": 217,
+      "tap_frame_change": 0.848,
+      "receipt_id": "r_7164260dcacce0a4",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "android",
+        "kind": "emulator",
+        "model": "sdk_gphone64_x86_64",
+        "os_version": "14",
+        "provider_device": "odr_pixel_6",
+        "device_id": "emulator-5554",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 3,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 18,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed"
+    },
+    {
+      "n": 2,
+      "outcome": "ok",
+      "timings_ms": {
+        "queue": 93,
+        "allocate": 36550,
+        "install": 4678,
+        "launch": 6214,
+        "first_frame": 766,
+        "run_to_first_frame": 48305,
+        "teardown": 4896,
+        "session": 70733
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 12,
+        "screenshots_failed": 0,
+        "max_gap_ms": 5392
+      },
+      "tap_ms": 231,
+      "tap_frame_change": 0.848,
+      "receipt_id": "r_d63cf6b782e4891b",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "android",
+        "kind": "emulator",
+        "model": "sdk_gphone64_x86_64",
+        "os_version": "14",
+        "provider_device": "odr_pixel_6",
+        "device_id": "emulator-5554",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 3,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 18,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed"
+    },
+    {
+      "n": 3,
+      "outcome": "ok",
+      "timings_ms": {
+        "queue": 97,
+        "allocate": 34823,
+        "install": 4718,
+        "launch": 5943,
+        "first_frame": 732,
+        "run_to_first_frame": 46317,
+        "teardown": 6927,
+        "session": 72521
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 12,
+        "screenshots_failed": 0,
+        "max_gap_ms": 5343
+      },
+      "tap_ms": 198,
+      "tap_frame_change": 0.848,
+      "receipt_id": "r_6fe19c089161480a",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "android",
+        "kind": "emulator",
+        "model": "sdk_gphone64_x86_64",
+        "os_version": "14",
+        "provider_device": "odr_pixel_6",
+        "device_id": "emulator-5554",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 3,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 18,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver",
+      "closure_detail": "session closed, daemon closed"
+    }
+  ]
+}
