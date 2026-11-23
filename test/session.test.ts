@@ -227,3 +227,10 @@ test("agent-device shutdown report: clean only when nothing is pending", async (
   assert.equal(shutdownClean({ ...clean, providerReleases: { completed: [], pending: ["l1"], unknown: [] } }), false);
   assert.equal(shutdownClean({ ...clean, runners: { stopped: [], handedOff: ["d"] } }), false);
 });
+
+test("frameProblem explains why a frame is not usable", async () => {
+  const { frameProblem } = await import("../src/session/png.js");
+  assert.equal(frameProblem(makePng(64, 128)), undefined);
+  assert.match(frameProblem(makePng(64, 128, true)) ?? "", /^flat colour/);
+  assert.match(frameProblem(Buffer.from("not a png")) ?? "", /^undecodable/);
+});

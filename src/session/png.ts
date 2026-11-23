@@ -81,23 +81,30 @@ export function decodePng(buf: Buffer): Frame {
   };
 }
 
-/** Samples a grid; a frame is usable when it decodes and is not a single flat color (black boot screen). */
-export function isUsableFrame(buf: Buffer): boolean {
+/**
+ * Why a frame is not usable, or undefined when it is. Usable = decodes as a PNG of at least 16x16
+ * and is not one flat colour (a black or white boot screen). Samples a 32x32 grid.
+ */
+export function frameProblem(buf: Buffer): string | undefined {
+  let f: Frame;
   try {
-    const f = decodePng(buf);
-    if (f.width < 16 || f.height < 16) return false;
-    const seen = new Set<string>();
-    for (let gy = 1; gy < 16; gy++) {
-      for (let gx = 1; gx < 16; gx++) {
-        const [r, g, b] = f.rgb(Math.floor((gx * f.width) / 16), Math.floor((gy * f.height) / 16));
-        seen.add(`${r >> 4},${g >> 4},${b >> 4}`);
-        if (seen.size > 2) return true;
-      }
-    }
-    return false;
-  } catch {
-    return false;
+    f = decodePng(buf);
+  } catch (e) {
+    return `undecodable (${(e as Error).message})`;
   }
+  if (f.width < 16 || f.height < 16) return `too small (${f.width}x${f.height})`;
+  const first = f.rgb(0, 0).map((v) => v >> 3).join(",");
+  for (let gy = 0; gy < 32; gy++) {
+    for (let gx = 0; gx < 32; gx++) {
+      const c = f.rgb(Math.floor((gx * f.width) / 32), Math.floor((gy * f.height) / 32)).map((v) => v >> 3).join(",");
+      if (c !== first) return undefined;
+    }
+  }
+  return `flat colour ${f.rgb(0, 0).join(",")} at ${f.width}x${f.height}`;
+}
+
+export function isUsableFrame(buf: Buffer): boolean {
+  return frameProblem(buf) === undefined;
 }
 
 /** Share of sampled pixels that differ between two frames of the same size. */

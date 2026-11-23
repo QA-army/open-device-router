@@ -13,7 +13,7 @@ import {
 import { resolveSurface, route, type Candidate, type Decision, type RouteRequest } from "../core/router.js";
 import type { DeviceProfile, Input, Key, Provider, Size } from "../core/types.js";
 import { loadRegistry } from "../registry/load.js";
-import { isUsableFrame, pngSize } from "./png.js";
+import { frameProblem, pngSize } from "./png.js";
 import { RECEIPT_SCHEMA, type Outcome, type Receipt } from "./receipt.js";
 import type {
   AllocateContext,
@@ -505,8 +505,9 @@ export async function allocate(request: RouteRequest, opts: AllocateOptions = {}
       if (opts.signal?.aborted) throw new SessionError("cancelled", "aborted by caller");
       try {
         const shot = await session.screenshot();
-        if (isUsableFrame(shot.png)) break;
-        lastError = "frame was blank";
+        const problem = frameProblem(shot.png);
+        if (!problem) break;
+        lastError = `frame not usable: ${problem}`;
       } catch (error) {
         lastError = (error as Error).message;
       }

@@ -36,7 +36,7 @@ Only the first two are measured today, and published only for GitHub-hosted runn
 | `allocate` | provider asked for a device | device ready to accept commands |
 | `install` | install started | install returned |
 | `launch` | launch started | launch returned |
-| `first_frame` | launch returned | first screenshot that decodes as a PNG of at least 16x16 with more than one colour |
+| `first_frame` | launch returned | first screenshot that decodes as a PNG of at least 16x16 and is not one flat colour (32x32 sample grid) |
 | `run_to_first_frame` | `allocate()` called | first usable frame. The number QA.army cares about: Run click to first frame of the app |
 | `teardown` | release started | release and closure check finished |
 

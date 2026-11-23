@@ -14,4 +14,4 @@ export { attach } from "./attach.js";
 export type { SessionLike, SessionFile } from "./attach.js";
 export { midsceneInterface } from "./midscene.js";
 export { serveSession } from "../session/serve.js";
-export { decodePng, isUsableFrame, frameDifference } from "../session/png.js";
+export { decodePng, isUsableFrame, frameProblem, frameDifference } from "../session/png.js";
