@@ -65,7 +65,10 @@ export async function ensureSimbenchAvd(sdk: AndroidSdk): Promise<{ avd: string;
   const image = pinned ?? newestSystemImage(sdk);
   if (!image) throw new Error("no Android system image installed. Install one in Android Studio > Device Manager, or pass --avd <name>");
   if (!sdk.avdmanager) throw new Error("avdmanager not found (install Android SDK Command-line Tools), or pass --avd <name>");
+  // avdmanager and the emulator do not always agree on where AVDs live (XDG_CONFIG_HOME, for
+  // example), so both are pointed at the same directory for the rest of this process.
   const avdHome = process.env.ANDROID_AVD_HOME ?? join(homedir(), ".android", "avd");
+  process.env.ANDROID_AVD_HOME = avdHome;
   mkdirSync(avdHome, { recursive: true });
   await new Promise<void>((resolve, reject) => {
     const child = spawn(sdk.avdmanager!, ["create", "avd", "--force", "-n", SIMBENCH_AVD, "-k", image, "-d", "pixel_6"], { stdio: ["pipe", "ignore", "pipe"] });
@@ -74,6 +77,7 @@ export async function ensureSimbenchAvd(sdk: AndroidSdk): Promise<{ avd: string;
     child.stdin.end("no\n");
     child.once("exit", (code) => (code === 0 ? resolve() : reject(new Error(`avdmanager create failed (${code}): ${err}`))));
   });
+  if (!(await listAvds(sdk)).includes(SIMBENCH_AVD)) throw new Error(`setup fault: the emulator does not list ${SIMBENCH_AVD} in ${avdHome}`);
   return { avd: SIMBENCH_AVD, image };
 }
 
