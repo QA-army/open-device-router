@@ -89,6 +89,8 @@ class AgentDeviceDriver implements Driver {
       platform: this.#platform,
       ...(wanted ? { device: wanted } : {}),
       pick: "newest",
+      // No display (CI, containers): start emulators with -no-window. ODR_HEADLESS=1|0 overrides.
+      headless: ctx.env.ODR_HEADLESS ? ctx.env.ODR_HEADLESS === "1" : process.platform === "linux" && !ctx.env.DISPLAY && !ctx.env.WAYLAND_DISPLAY,
       timeoutMs: 600_000,
     });
     this.#deviceId = boot.id;

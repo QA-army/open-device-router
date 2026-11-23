@@ -10,7 +10,7 @@ Full lifecycle through the SDK: reserve, allocate, install the fixture build, la
 
 | Provider | Platform | Device | Runs | Samples | OK + closed | Run to first frame | Allocate | Install | Launch | First frame | Teardown | Dropped | Screenshot misses | Tap changed frame | Last run |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| github-actions | ios | iPhone 17, ? | 1 | 3 | 3 (100.0%) | 201.8 s | 162.2 s | 22.4 s | 16.9 s | 3.4 s | 11.2 s | 0 | 0 of 24 | 2 of 3 | 2026-11-23 |
+| github-actions | ios | iPhone 17, 26.0.1 | 1 | 3 | 3 (100.0%) | 201.8 s | 162.2 s | 22.4 s | 16.9 s | 3.4 s | 11.2 s | 0 | 0 of 24 | 2 of 3 | 2026-11-23 |
 
 | Started (UTC) | Provider | Platform | Samples | OK + closed | Run to first frame (min / median / max) | Commit | Run | Raw |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
