@@ -7,3 +7,5 @@ dist/
 # Local ledger and credentials never belong in the repo
 .opendevicerouter/
 bench/tmp/
+simbench-results/
+bench/fixtures/*/out/

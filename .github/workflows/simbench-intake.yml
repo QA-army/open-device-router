@@ -1,0 +1,77 @@
+name: simbench-intake
+
+# A "SimBench result" issue becomes a pull request that adds one file under
+# bench/results/simbench/self-reported/. A maintainer reviews and merges it; nothing lands on main here.
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: simbench-intake-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  intake:
+    if: contains(github.event.issue.labels.*.name, 'simbench-result') && github.event.issue.state == 'open'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - id: parse
+        name: Parse the issue
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: node bench/intake.mjs
+      - id: check
+        name: Validate against simbench/v1 and rebuild RESULTS.md
+        run: |
+          set -o pipefail
+          node bench/summarize.mjs 2>&1 | tee /tmp/summarize.log
+      - name: Open a pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FILE: ${{ steps.parse.outputs.file }}
+          NUMBER: ${{ github.event.issue.number }}
+        run: |
+          branch="simbench/issue-${NUMBER}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add -- "$FILE" bench/RESULTS.md README.md
+          git commit -m "bench: self-reported SimBench result from #${NUMBER}"
+          git push --force origin "$branch"
+          if ! gh pr view "$branch" >/dev/null 2>&1; then
+            gh pr create --base main --head "$branch" \
+              --title "bench: self-reported SimBench result from #${NUMBER}" \
+              --body "Adds \`${FILE}\` from #${NUMBER}. Checked by schema and summary recomputation only; not reproduced. Closes #${NUMBER} on merge."
+          fi
+          gh issue comment "$NUMBER" --body "Thanks. The result passed the schema and consistency checks and is in a pull request for review: $(gh pr view "$branch" --json url -q .url)"
+      - name: Report a problem
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.issue.number }}
+          PARSE_ERROR: ${{ steps.parse.outputs.error }}
+        run: |
+          {
+            echo "The result could not be added."
+            echo
+            if [ -n "$PARSE_ERROR" ]; then echo "$PARSE_ERROR"; else echo '```'; tail -n 20 /tmp/summarize.log 2>/dev/null || true; echo '```'; fi
+            echo
+            echo "Edit the issue with a corrected file and remove and re-add the \`simbench-result\` label to retry."
+          } > /tmp/comment.md
+          gh issue comment "$NUMBER" --body-file /tmp/comment.md

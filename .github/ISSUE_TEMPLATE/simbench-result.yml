@@ -1,0 +1,31 @@
+name: SimBench result
+description: Add your machine's `odr bench` result to the self-reported table.
+title: "SimBench result: "
+labels: [simbench-result]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Run `npx opendevicerouter bench` (or `odr bench`), then paste the whole JSON file it wrote. `odr bench submit <file>` does this for you if `gh` is installed.
+        The file records chip, RAM, macOS, Xcode and power source. It never records hostname, username, serial number or device UDID; check before you paste.
+        Self-reported results are checked for schema and internal consistency, not reproduced. They are listed apart from CI-verified results.
+  - type: textarea
+    id: result
+    attributes:
+      label: Result
+      description: The full simbench/v1 JSON file.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything unusual about the run
+      description: Other apps running, external display, low power mode, beta Xcode.
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Publication
+      options:
+        - label: I am fine with this result being published in bench/RESULTS.md under the MIT licence of this repo.
+          required: true

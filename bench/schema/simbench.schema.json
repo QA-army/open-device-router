@@ -1,0 +1,540 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/QA-army/open-device-router/bench/schema/simbench.schema.json",
+  "title": "SimBench result (simbench/v1)",
+  "description": "One file per `odr bench` run. Written by the tool, never by hand. The environment block is closed so no identifying field (hostname, username, serial, UDID) can be added.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "tier",
+    "platform",
+    "started_at",
+    "finished_at",
+    "tool",
+    "harness",
+    "environment",
+    "target",
+    "method",
+    "samples",
+    "summary"
+  ],
+  "definitions": {
+    "ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "msOrNull": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "index",
+        "ok"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "cold",
+            "warm"
+          ]
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "create_step_ms": {
+          "$ref": "#/definitions/ms"
+        },
+        "boot_ms": {
+          "$ref": "#/definitions/ms"
+        },
+        "first_screenshot_ms": {
+          "$ref": "#/definitions/ms"
+        },
+        "install_step_ms": {
+          "$ref": "#/definitions/ms"
+        },
+        "launch_step_ms": {
+          "$ref": "#/definitions/ms"
+        },
+        "launch_to_first_frame_ms": {
+          "$ref": "#/definitions/ms"
+        },
+        "run_to_first_frame_ms": {
+          "$ref": "#/definitions/ms"
+        },
+        "tap_to_change_ms": {
+          "$ref": "#/definitions/msOrNull"
+        },
+        "teardown_step_ms": {
+          "$ref": "#/definitions/ms"
+        },
+        "error": {
+          "type": "string",
+          "maxLength": 1000
+        }
+      }
+    }
+  },
+  "properties": {
+    "schema": {
+      "const": "simbench/v1"
+    },
+    "tier": {
+      "enum": [
+        "ci-verified",
+        "vendor-submitted",
+        "self-reported"
+      ]
+    },
+    "platform": {
+      "enum": [
+        "ios",
+        "android"
+      ]
+    },
+    "started_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "finished_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "const": "opendevicerouter"
+        },
+        "version": {
+          "type": "string",
+          "maxLength": 40
+        }
+      }
+    },
+    "harness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "commit",
+        "run_url"
+      ],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "commit": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "run_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 300
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "os",
+        "os_version",
+        "os_build",
+        "arch",
+        "chip",
+        "machine_model",
+        "cpu_count",
+        "memory_gb",
+        "xcode",
+        "power",
+        "booted_simulators_before",
+        "runner_label",
+        "image_os",
+        "image_version",
+        "node"
+      ],
+      "properties": {
+        "os": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "os_version": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 80
+        },
+        "os_build": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 40
+        },
+        "arch": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "chip": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "machine_model": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 60
+        },
+        "cpu_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "memory_gb": {
+          "type": "number",
+          "minimum": 0
+        },
+        "xcode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 80
+        },
+        "power": {
+          "enum": [
+            "ac",
+            "battery",
+            "unknown"
+          ]
+        },
+        "booted_simulators_before": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "runner_label": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 60
+        },
+        "image_os": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 40
+        },
+        "image_version": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 40
+        },
+        "node": {
+          "type": "string",
+          "maxLength": 20
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "runtime": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "runtime_version": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "runtime_build": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 20
+        },
+        "device_type": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "avd": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "system_image": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120
+        }
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cold",
+        "warm",
+        "first_frame",
+        "input",
+        "fixture_build_excluded_ms"
+      ],
+      "properties": {
+        "cold": {
+          "type": "string"
+        },
+        "warm": {
+          "type": "string"
+        },
+        "first_frame": {
+          "type": "string"
+        },
+        "input": {
+          "type": "string"
+        },
+        "fixture_build_excluded_ms": {
+          "$ref": "#/definitions/msOrNull"
+        }
+      }
+    },
+    "samples": {
+      "type": "array",
+      "maxItems": 60,
+      "items": {
+        "$ref": "#/definitions/sample"
+      }
+    },
+    "parallel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "levels",
+        "max_ok_n",
+        "stop_reason",
+        "rule"
+      ],
+      "properties": {
+        "levels": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "n",
+              "ok",
+              "failed",
+              "median_run_to_first_frame_ms",
+              "max_run_to_first_frame_ms",
+              "devices"
+            ],
+            "properties": {
+              "n": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 16
+              },
+              "ok": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "failed": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "median_run_to_first_frame_ms": {
+                "$ref": "#/definitions/msOrNull"
+              },
+              "max_run_to_first_frame_ms": {
+                "$ref": "#/definitions/msOrNull"
+              },
+              "devices": {
+                "type": "array",
+                "maxItems": 16,
+                "items": {
+                  "$ref": "#/definitions/sample"
+                }
+              }
+            }
+          }
+        },
+        "max_ok_n": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "stop_reason": {
+          "type": "string"
+        },
+        "rule": {
+          "type": "string"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cold",
+        "warm",
+        "tap"
+      ],
+      "properties": {
+        "cold": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "n",
+            "ok",
+            "median_run_to_first_frame_ms",
+            "median_boot_ms"
+          ],
+          "properties": {
+            "n": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ok": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "median_run_to_first_frame_ms": {
+              "$ref": "#/definitions/msOrNull"
+            },
+            "median_boot_ms": {
+              "$ref": "#/definitions/msOrNull"
+            }
+          }
+        },
+        "warm": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "n",
+            "ok",
+            "median_run_to_first_frame_ms"
+          ],
+          "properties": {
+            "n": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ok": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "median_run_to_first_frame_ms": {
+              "$ref": "#/definitions/msOrNull"
+            }
+          }
+        },
+        "tap": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "n",
+            "median_ms"
+          ],
+          "properties": {
+            "n": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "median_ms": {
+              "$ref": "#/definitions/msOrNull"
+            }
+          }
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "sku",
+        "rate_usd_per_min",
+        "source",
+        "estimated_usd_per_cold_session",
+        "note"
+      ],
+      "properties": {
+        "model": {
+          "type": "string"
+        },
+        "sku": {
+          "type": "string"
+        },
+        "rate_usd_per_min": {
+          "type": "number",
+          "minimum": 0
+        },
+        "source": {
+          "type": "string"
+        },
+        "estimated_usd_per_cold_session": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "submission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "issue",
+        "received_at"
+      ],
+      "description": "Added by the intake workflow when a self-reported result arrives through a GitHub issue.",
+      "properties": {
+        "issue": {
+          "type": "string",
+          "pattern": "^https://github\\.com/QA-army/open-device-router/issues/\\d+$"
+        },
+        "received_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+        }
+      }
+    }
+  }
+}

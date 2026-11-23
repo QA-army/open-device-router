@@ -20,6 +20,7 @@ Start with a small number of targets and a public benchmark, not a long list of 
 - `odr keys`, `odr doctor`, generated `docs/keys.md`, `llms.txt`.
 - Session benchmark runner with fixture apps built from source, and a workflow for GitHub runners plus key-gated cloud jobs.
 - Cold-boot benchmark harness for iOS Simulator and Android emulator, with a workflow that runs it on GitHub-hosted runners and commits the raw results. First results were committed on 2026-11-22.
+- SimBench (`odr bench`, `simbench/v1`): cold, warm and parallel simulator/emulator sessions to the fixture's first frame on any machine, a share card, self-reported intake through issues, and a weekly matrix across GitHub-hosted runner images. Built 2026-11-23; no published numbers yet.
 - Weekly check that opens an issue when entries are older than 45 days.
 
 ## Promotion gate
@@ -32,6 +33,8 @@ The project is announced once all of these are true:
 4. `docs/free-tiers.md` has been re-checked within 14 days.
 
 Benchmarks across 4-6 device clouds (item 1.4) make the announcement stronger and do not block it. Until the gate is met the README keeps its pre-release notice.
+
+Benchmark-only posts (amended 2026-11-23): a post about SimBench (`odr bench`) and its results may go out once gates 1, 3 and 4 are met, before gate 2. Such a post presents the benchmark and the measured runners only. It does not announce routing to device clouds or quote any cloud number, and the README keeps its pre-release notice.
 
 ## Stage 1: v0.1, deterministic switch and ledger
 

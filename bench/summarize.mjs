@@ -39,7 +39,22 @@ const pct = (n, d) => (d === 0 ? "n/a" : `${((n / d) * 100).toFixed(1)}%`);
 const ajv = new Ajv({ allErrors: true, strict: true });
 const validate = ajv.compile(JSON.parse(readFileSync(join(here, "schema", "result.schema.json"), "utf8")));
 const validateSession = new Ajv({ allErrors: true, strict: false }).compile(JSON.parse(readFileSync(join(here, "schema", "session.schema.json"), "utf8")));
+const validateSimbench = new Ajv({ allErrors: true, strict: true }).compile(JSON.parse(readFileSync(join(here, "schema", "simbench.schema.json"), "utf8")));
 const sessions = [];
+const simbench = [];
+
+/** Same summary as src/bench/simbench.ts summarise(); a file whose summary differs was edited by hand. */
+function simbenchSummary(samples) {
+  const cold = samples.filter((x) => x.kind === "cold"), warm = samples.filter((x) => x.kind === "warm");
+  const okC = cold.filter((x) => x.ok), okW = warm.filter((x) => x.ok);
+  const taps = samples.map((x) => x.tap_to_change_ms).filter((v) => typeof v === "number");
+  const m = (v) => median(v) ?? null;
+  return {
+    cold: { n: cold.length, ok: okC.length, median_run_to_first_frame_ms: m(okC.map((x) => x.run_to_first_frame_ms)), median_boot_ms: m(okC.map((x) => x.boot_ms)) },
+    warm: { n: warm.length, ok: okW.length, median_run_to_first_frame_ms: m(okW.map((x) => x.run_to_first_frame_ms)) },
+    tap: { n: taps.length, median_ms: m(taps) },
+  };
+}
 
 const results = [];
 const problems = [];
@@ -50,6 +65,23 @@ for (const file of walk(resultsDir)) {
     data = JSON.parse(readFileSync(file, "utf8"));
   } catch (e) {
     problems.push(`${rel}: not valid JSON (${e.message})`);
+    continue;
+  }
+  if (data.schema === "simbench/v1") {
+    if (!validateSimbench(data)) {
+      for (const e of validateSimbench.errors) problems.push(`${rel}: ${e.instancePath || "/"} ${e.message}`);
+      continue;
+    }
+    if (JSON.stringify(simbenchSummary(data.samples)) !== JSON.stringify(data.summary)) problems.push(`${rel}: summary does not match the samples`);
+    if (data.tier === "ci-verified") {
+      if (!rel.startsWith(join("results", "simbench", "ci"))) problems.push(`${rel}: ci-verified SimBench results live under results/simbench/ci/`);
+      if (!/^https:\/\/github\.com\/QA-army\/open-device-router\/actions\/runs\/\d+$/.test(data.harness.run_url ?? "")) problems.push(`${rel}: ci-verified needs a run URL in QA-army/open-device-router`);
+    } else if (data.tier === "self-reported") {
+      if (!rel.startsWith(join("results", "simbench", "self-reported"))) problems.push(`${rel}: self-reported SimBench results live under results/simbench/self-reported/`);
+      if (!data.submission?.issue) problems.push(`${rel}: self-reported results are added from a GitHub issue (submission.issue)`);
+    } else problems.push(`${rel}: tier ${data.tier} is not published yet`);
+    if (!data.samples.some((x) => x.ok)) problems.push(`${rel}: no sample reached the fixture's first frame`);
+    simbench.push({ rel, ...data });
     continue;
   }
   if (data.schema === "odr.bench.session/v1") {
@@ -90,7 +122,7 @@ if (problems.length > 0) {
     rmSync(join(here, rel), { force: true });
     console.error(`dropped ${rel}; it stays in the workflow artifacts`);
   }
-  for (const list of [results, sessions]) {
+  for (const list of [results, sessions, simbench]) {
     for (let i = list.length - 1; i >= 0; i -= 1) if (bad.has(list[i].rel)) list.splice(i, 1);
   }
 }
@@ -142,6 +174,58 @@ if (sessions.length > 0) {
     const t = good.map((s) => s.timings_ms.run_to_first_frame).filter((v) => v !== undefined).sort((a, b) => a - b);
     lines.push(
       `| ${r.started_at.slice(0, 16).replace("T", " ")} | ${r.provider} | ${r.platform} | ${r.samples.length} | ${good.length} | ${secs(t[0])} / ${secs(median(t))} / ${secs(t.at(-1))} | \`${r.harness.commit.slice(0, 7)}\` | [run](${r.harness.run_url}) | [json](${r.rel.split("\\").join("/")}) |`,
+    );
+  }
+  lines.push("");
+}
+
+const ci = simbench.filter((r) => r.tier === "ci-verified");
+const self = simbench.filter((r) => r.tier === "self-reported");
+const raw = (r) => `[json](${r.rel.split("\\").join("/")})`;
+const targetOf = (r) => (r.platform === "ios" ? `${r.target.device_type}, iOS ${r.target.runtime_version}` : `${r.target.system_image ?? r.target.avd}`);
+if (ci.length > 0) {
+  lines.push("## SimBench: GitHub-hosted runners (CI-verified)");
+  lines.push("");
+  lines.push(
+    "`odr bench` on GitHub-hosted runners, one fresh device per cold sample. Run to first frame starts before the simulator is created (iOS) or the emulator process is started (Android) and ends at the first screenshot showing the fixture app. Warm = install and launch on an already booted device. Cost is an estimate from the published per-minute rate; public repositories run standard runners at no charge.",
+  );
+  lines.push("");
+  lines.push("| Runner | Platform | Target | Runs | Cold OK | Cold run to first frame | Boot | Warm run to first frame | Tap to change | Parallel (max N) | Est. cost per cold session | Last run |");
+  lines.push("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
+  const groups = new Map();
+  for (const r of ci) {
+    const key = [r.environment.runner_label, r.platform, targetOf(r)].join("|");
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  }
+  for (const key of [...groups.keys()].sort()) {
+    const runs = groups.get(key);
+    const [runner, platform, target] = key.split("|");
+    const all = runs.flatMap((r) => r.samples);
+    const pooled = simbenchSummary(all);
+    const par = runs.map((r) => r.parallel?.max_ok_n).filter((v) => typeof v === "number");
+    const cost = runs.map((r) => r.cost?.estimated_usd_per_cold_session).filter((v) => typeof v === "number");
+    lines.push(
+      `| ${runner} | ${platform} | ${target} | ${runs.length} | ${pooled.cold.ok} of ${pooled.cold.n} | ${secs(pooled.cold.median_run_to_first_frame_ms ?? undefined)} | ${secs(pooled.cold.median_boot_ms ?? undefined)} | ${secs(pooled.warm.median_run_to_first_frame_ms ?? undefined)} | ${pooled.tap.n ? secs(pooled.tap.median_ms) : "not measured"} | ${par.length ? `N=${Math.min(...par)}` : "-"} | ${cost.length ? `$${median(cost.map((c) => Math.round(c * 10000))) / 10000}` : "-"} | ${runs.map((r) => r.started_at).sort().at(-1).slice(0, 10)} |`,
+    );
+  }
+  lines.push("");
+  lines.push("Parallel shows the lowest max N across runs. Rule: " + (ci.find((r) => r.parallel)?.parallel.rule ?? "see METHODOLOGY.md") );
+  lines.push("");
+}
+if (self.length > 0) {
+  lines.push("## SimBench: self-reported");
+  lines.push("");
+  lines.push(
+    "Submitted by people running `npx opendevicerouter bench` on their own machines. Each file passed the schema and a consistency check (the summary is recomputed from the raw samples). Nobody reproduced them, so they are not compared with the CI-verified table.",
+  );
+  lines.push("");
+  lines.push("| Submitted | Platform | Target | Chip | RAM | Xcode | Power | Cold OK | Cold run to first frame | Warm | Parallel (max N) | Issue | Raw |");
+  lines.push("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
+  for (const r of [...self].sort((a, b) => b.started_at.localeCompare(a.started_at))) {
+    const e = r.environment;
+    lines.push(
+      `| ${r.started_at.slice(0, 10)} | ${r.platform} | ${targetOf(r)} | ${e.chip} | ${Math.round(e.memory_gb)} GB | ${e.xcode ? e.xcode.replace(/ Build version.*/, "") : "-"} | ${e.power} | ${r.summary.cold.ok} of ${r.summary.cold.n} | ${secs(r.summary.cold.median_run_to_first_frame_ms ?? undefined)} | ${secs(r.summary.warm.median_run_to_first_frame_ms ?? undefined)} | ${r.parallel?.max_ok_n ? `N=${r.parallel.max_ok_n}` : "-"} | [issue](${r.submission.issue}) | ${raw(r)} |`,
     );
   }
   lines.push("");

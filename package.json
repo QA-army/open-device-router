@@ -69,6 +69,14 @@
     "dist",
     "registry",
     "schema",
+    "bench/fixtures/README.md",
+    "bench/fixtures/ios/*.swift",
+    "bench/fixtures/ios/*.plist",
+    "bench/fixtures/ios/build.sh",
+    "bench/fixtures/android/AndroidManifest.xml",
+    "bench/fixtures/android/build.sh",
+    "bench/fixtures/android/src",
+    "bench/schema",
     "README.md",
     "LICENSE"
   ]

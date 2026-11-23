@@ -1,6 +1,6 @@
 # OpenDeviceRouter
 
-**Give coding agents eyes on real browsers, iOS simulators, and Android phones at $0.**
+**Route coding-agent device sessions to free capacity you already have: local simulators, GitHub runners, then free cloud tiers. Stops before billing.**
 
 One call gets your agent or test runner an iOS Simulator or Android device from your own machine, a free GitHub runner, or a device cloud you already have an account with. It installs your build, waits until the screen can be captured, hands you screenshot, tap, type, swipe and key input, then releases the device and proves it closed. Every session ends with a machine-readable receipt.
 
@@ -140,6 +140,13 @@ Reservations are taken under a lock before the provider is called, and released 
 ## Benchmarks
 
 Published numbers come from committed result files produced by CI on this public repository. The summary page is generated from them and CI fails if the two disagree. Nobody types a number into it.
+
+- SimBench (`odr bench`): how long this machine takes from nothing to a launched app's first frame, cold and warm, and how many simulators it can boot at once before it slows past 2x. Writes a JSON result and a share card; nothing leaves the machine unless you run `odr bench submit`. Runs weekly on GitHub-hosted macOS and Ubuntu images.
+
+  ```sh
+  odr bench                       # iOS on macOS, Android elsewhere
+  odr bench --parallel 1,2,4,8    # iOS only
+  ```
 
 - Session benchmark: Run to first frame of a fixture app, allocate, install, launch, hold with screenshots every 5 s, tap check, teardown, closure.
 - Cold boot benchmark: device only.
