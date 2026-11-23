@@ -7,7 +7,7 @@ import { benchHarness } from "./env.js";
 import { frameChanged, isAppFrame } from "./frames.js";
 import { bundleIdOf, ios, pickIosTarget } from "./ios.js";
 import { pollFrame } from "./simbench.js";
-import { BOOT_FRAME_TIMEOUT_MS, errorText, FRAME_TIMEOUT_MS, now, since, sleep } from "./util.js";
+import { BOOT_FRAME_TIMEOUT_MS, errorText, SHOT_BOOT_TIMEOUT_MS, FRAME_TIMEOUT_MS, now, since, sleep } from "./util.js";
 
 // `odr shot`: boot a fresh device, install an app, and capture the first frame it draws, then one
 // more frame (after a centre tap on Android, after the screen settles on iOS). On Android the launch
@@ -117,7 +117,7 @@ export async function runShot(opts: ShotOptions): Promise<ShotResult> {
     const t0 = now();
     try {
       udid = await ios.create("odr-shot", t);
-      await ios.bootWait(udid);
+      await ios.bootWait(udid, SHOT_BOOT_TIMEOUT_MS);
       const home = await pollFrame(() => ios.screenshot(udid!), (png) => frameProblem(png) === undefined, BOOT_FRAME_TIMEOUT_MS);
       res.timings_ms.boot = since(t0);
       let s = now();

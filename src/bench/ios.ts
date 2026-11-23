@@ -45,7 +45,7 @@ export async function pickIosTarget(want: { runtime?: string; deviceType?: strin
 export const ios = {
   create: (name: string, t: IosTarget) => sh("xcrun", ["simctl", "create", name, t.type.identifier, t.runtime.identifier]),
   /** Boots if needed and returns once the system reports boot complete. */
-  bootWait: (udid: string) => sh("xcrun", ["simctl", "bootstatus", udid, "-b"], { timeout: BOOT_TIMEOUT_MS }),
+  bootWait: (udid: string, timeoutMs = BOOT_TIMEOUT_MS) => sh("xcrun", ["simctl", "bootstatus", udid, "-b"], { timeout: timeoutMs }),
   install: (udid: string, app: string) => sh("xcrun", ["simctl", "install", udid, app]),
   launch: (udid: string, bundleId: string) => sh("xcrun", ["simctl", "launch", udid, bundleId]),
   terminate: (udid: string, bundleId: string) => trySh("xcrun", ["simctl", "terminate", udid, bundleId]),

@@ -110,7 +110,7 @@ runs:
         [ -n "$SCHEME" ] || { echo "::error::set scheme (with project or workspace), or app-path"; exit 1; }
         if [ -n "$WORKSPACE" ]; then SRC=(-workspace "$WORKSPACE"); elif [ -n "$PROJECT" ]; then SRC=(-project "$PROJECT"); else echo "::error::set project or workspace"; exit 1; fi
         DD="$RUNNER_TEMP/odr-dd"
-        xcodebuild "${SRC[@]}" -scheme "$SCHEME" -configuration "$CONFIGURATION" -sdk iphonesimulator \
+        xcodebuild "${SRC[@]}" -scheme "$SCHEME" -configuration "$CONFIGURATION" \
           -destination 'generic/platform=iOS Simulator' -derivedDataPath "$DD" ${EXTRA[@]+"${EXTRA[@]}"} \
           CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build -quiet
         APP=$(find "$DD/Build/Products/$CONFIGURATION-iphonesimulator" -maxdepth 1 -name '*.app' -type d | head -1)
