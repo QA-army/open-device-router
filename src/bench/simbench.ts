@@ -90,7 +90,7 @@ export interface SimbenchOptions {
 
 const POLL_MS = 250;
 
-async function pollFrame(capture: () => Promise<Buffer>, accept: (png: Buffer) => boolean, timeoutMs = FRAME_TIMEOUT_MS): Promise<Buffer> {
+export async function pollFrame(capture: () => Promise<Buffer>, accept: (png: Buffer) => boolean, timeoutMs = FRAME_TIMEOUT_MS): Promise<Buffer> {
   const deadline = now() + timeoutMs;
   let last: unknown;
   while (now() < deadline) {

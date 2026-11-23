@@ -7,6 +7,7 @@ import { ageInDays, findProvider, loadRegistry } from "../registry/load.js";
 import { freeTiersMarkdown } from "./free-tiers.js";
 import { keysMarkdown } from "./keys.js";
 import { cmdBench } from "./bench-command.js";
+import { cmdShot } from "./shot-command.js";
 import { cmdDoctor, cmdForget, cmdKeys, cmdReconcile, cmdRun, cmdSessions, cmdSweep, REQUEST_OPTIONS, requestFromFlags } from "./session-commands.js";
 import { VERSION } from "../version.js";
 
@@ -26,6 +27,9 @@ Benchmark
   odr bench [--platform ios|android] [--cold 3] [--warm 3] [--parallel 1,2,4,8] [--submit]
                                    SimBench: cold and warm sessions on this machine, a JSON result
                                    and a share card. \`odr bench help\` for details
+  odr shot --app My.app | --apk app.apk
+                                   fresh device, install, first frame the app draws, timings JSON.
+                                   \`odr shot help\` for details
 
 Keys and accounts
   odr keys [id] [--all]            where to get each key, env var names, gh secret lines
@@ -416,6 +420,8 @@ async function main(): Promise<void> {
       return cmdDoctor(loadValid());
     case "bench":
       return cmdBench(rest);
+    case "shot":
+      return cmdShot(rest);
     case "mcp":
     case "proxy":
       fail(`\`${command}\` is not implemented yet. See ROADMAP.md.`, 2);
