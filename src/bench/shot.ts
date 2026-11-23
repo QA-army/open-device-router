@@ -47,30 +47,41 @@ export interface ShotResult {
     run_to_first_frame?: number;
     /** Android only: `am start -W` TotalTime, as reported by the OS (activity drawn, after any splash). */
     android_total_time?: number | null;
+    /** Android: launch command to the first screen that held still (past the system splash). */
+    launch_to_settled?: number;
     /** Tap command to a changed frame (Android). */
     tap_to_change?: number | null;
   };
   second_frame: { kind: "after_tap" | "settled"; changed: boolean | null } | null;
-  files: { first?: string; second?: string };
+  /** first: shown first in the comment. Android: first-screen.png (settled); iOS: first-frame.png. */
+  files: { first?: string; second?: string; first_change?: string };
   tool: { name: "opendevicerouter"; version: string };
   harness: { repository: string; commit: string; run_url: string | null };
 }
 
-/** Two frames in a row with under 2% difference, or the timeout. Returns the last frame. */
-async function settle(capture: () => Promise<Buffer>, start: Buffer, timeoutMs = 8_000): Promise<Buffer> {
-  const deadline = now() + timeoutMs;
+/**
+ * Polls until `stableFor` consecutive comparisons are under 2% different, or the timeout. Returns the
+ * last frame and when it was taken. Used to get past launch screens and the Android system splash.
+ */
+async function settle(capture: () => Promise<Buffer>, start: Buffer, opts: { timeoutMs?: number; stableFor?: number } = {}): Promise<{ png: Buffer; at: number }> {
+  const deadline = now() + (opts.timeoutMs ?? 10_000);
+  const need = opts.stableFor ?? 1;
   let prev = start;
+  let stable = 0;
   while (now() < deadline) {
     await sleep(700);
     const cur = await capture().catch(() => prev);
+    let same = false;
     try {
-      if (frameDifference(prev, cur) < 0.02 && frameProblem(cur) === undefined) return cur;
+      same = frameDifference(prev, cur) < 0.02 && frameProblem(cur) === undefined;
     } catch {
       /* size change during rotation: keep polling */
     }
+    stable = same ? stable + 1 : 0;
     prev = cur;
+    if (stable >= need) return { png: cur, at: now() };
   }
-  return prev;
+  return { png: prev, at: now() };
 }
 
 export async function runShot(opts: ShotOptions): Promise<ShotResult> {
@@ -119,7 +130,7 @@ export async function runShot(opts: ShotOptions): Promise<ShotResult> {
       res.timings_ms.launch_to_first_frame = since(s);
       res.timings_ms.run_to_first_frame = since(t0);
       res.files.first = save("first-frame.png", first);
-      const second = await settle(() => ios.screenshot(udid!), first);
+      const second = (await settle(() => ios.screenshot(udid!), first)).png;
       res.files.second = save("settled.png", second);
       res.second_frame = { kind: "settled", changed: frameChanged(first, second, 0.02) };
       res.timings_ms.tap_to_change = null;
@@ -159,14 +170,18 @@ export async function runShot(opts: ShotOptions): Promise<ShotResult> {
       s = now();
       res.timings_ms.android_total_time = await android.launchWait(sdk, emu.serial, appId);
       res.timings_ms.launch = since(s);
-      const first = await pollFrame(() => android.screenshot(sdk, emu!.serial), (png) => isAppFrame(png, home), FRAME_TIMEOUT_MS);
+      const changed = await pollFrame(() => android.screenshot(sdk, emu!.serial), (png) => isAppFrame(png, home), FRAME_TIMEOUT_MS);
       res.timings_ms.launch_to_first_frame = since(s);
       res.timings_ms.run_to_first_frame = since(t0);
-      res.files.first = save("first-frame.png", first);
-      const settled = await settle(() => android.screenshot(sdk, emu!.serial), first);
+      res.files.first_change = save("first-change.png", changed);
+      // The first changed frame is often the system splash. The first screen is the frame that then
+      // holds still for two polls (about 1.4 s).
+      const screen = await settle(() => android.screenshot(sdk, emu!.serial), changed, { stableFor: 2 });
+      res.timings_ms.launch_to_settled = Math.round(screen.at - s);
+      const settled = screen.png;
+      res.files.first = save("first-screen.png", settled);
       if (opts.tap === false) {
-        res.files.second = save("settled.png", settled);
-        res.second_frame = { kind: "settled", changed: frameChanged(first, settled, 0.02) };
+        res.second_frame = null;
         res.timings_ms.tap_to_change = null;
       } else {
         const w = settled.readUInt32BE(16), h = settled.readUInt32BE(20);
@@ -210,15 +225,27 @@ export function shotMarkdown(r: ShotResult, imageUrl?: (file: string) => string 
     const first = r.files.first && imageUrl?.(r.files.first);
     const second = r.files.second && imageUrl?.(r.files.second);
     const label = r.second_frame?.kind === "after_tap" ? (r.second_frame.changed ? "After a centre tap" : "After a centre tap (no visible change in 5 s)") : "Settled";
+    const firstLabel = r.platform === "android" ? "First screen" : "First frame";
     if (first || second) {
-      lines.push(`| First frame | ${label} |`, "| --- | --- |", `| ${first ? `<img src="${first}" width="280">` : "-"} | ${second ? `<img src="${second}" width="280">` : "-"} |`, "");
+      lines.push(`| ${firstLabel} | ${label} |`, "| --- | --- |", `| ${first ? `<img src="${first}" width="280">` : "-"} | ${second ? `<img src="${second}" width="280">` : "-"} |`, "");
     }
-    lines.push(
-      `| Boot | Install | Launch to first frame | Run to first frame | Tap to change |`,
-      `| --- | --- | --- | --- | --- |`,
-      `| ${s(r.timings_ms.boot)} | ${s(r.timings_ms.install)} | ${s(r.timings_ms.launch_to_first_frame)} | ${s(r.timings_ms.run_to_first_frame)} | ${r.platform === "ios" ? "not measured on iOS" : s(r.timings_ms.tap_to_change)} |`,
-      "",
-    );
+    if (r.platform === "android") {
+      lines.push(
+        `| Boot | Install | Launch to first change | Launch to first screen | Run to first change | Tap to change |`,
+        `| --- | --- | --- | --- | --- | --- |`,
+        `| ${s(r.timings_ms.boot)} | ${s(r.timings_ms.install)} | ${s(r.timings_ms.launch_to_first_frame)} | ${s(r.timings_ms.launch_to_settled)} | ${s(r.timings_ms.run_to_first_frame)} | ${s(r.timings_ms.tap_to_change)} |`,
+        "",
+        "First change is the first frame that differs from the home screen, often the system splash (saved as first-change.png in the artifact). First screen is the frame that then held still for about 1.4 s.",
+        "",
+      );
+    } else {
+      lines.push(
+        `| Boot | Install | Launch to first frame | Run to first frame | Tap to change |`,
+        `| --- | --- | --- | --- | --- |`,
+        `| ${s(r.timings_ms.boot)} | ${s(r.timings_ms.install)} | ${s(r.timings_ms.launch_to_first_frame)} | ${s(r.timings_ms.run_to_first_frame)} | not measured on iOS |`,
+        "",
+      );
+    }
   }
   lines.push(`Captured by [OpenDeviceRouter](https://github.com/QA-army/open-device-router) \`odr shot\` ${r.tool.version}. No pass/fail verdict: this shows what the app drew${r.harness.run_url ? `. [Run](${r.harness.run_url})` : ""}.`);
   return lines.join("\n");
