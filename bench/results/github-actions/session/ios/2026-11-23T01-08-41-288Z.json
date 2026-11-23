@@ -1,0 +1,192 @@
+{
+  "schema": "odr.bench.session/v1",
+  "provider": "github-actions",
+  "platform": "ios",
+  "measurement": "session",
+  "odr_version": "0.1.0",
+  "started_at": "2026-11-23T00:53:32.719Z",
+  "finished_at": "2026-11-23T01:08:41.288Z",
+  "harness": {
+    "repository": "QA-army/open-device-router",
+    "commit": "488a10d1983476b293ad586eafae9da37788123e",
+    "script": "bench/runners/session.mjs",
+    "run_url": "https://github.com/QA-army/open-device-router/actions/runs/45091307145"
+  },
+  "environment": {
+    "runner_label": "macos-15",
+    "image_os": "macos15",
+    "image_version": "20261118.0550.1",
+    "os": "darwin",
+    "os_release": "24.6.0",
+    "arch": "arm64",
+    "cpu_model": "Apple M1 (Virtual)",
+    "cpu_count": 3,
+    "memory_gb": 7,
+    "tools": {
+      "node": "v22.23.5",
+      "agent-device": "0.21.41",
+      "@appetize/cli": "not installed"
+    }
+  },
+  "request": {
+    "provider": "github-actions",
+    "platform": "ios",
+    "model": "iPhone",
+    "build_format": "app",
+    "needs": [
+      "screenshot",
+      "tap"
+    ],
+    "minutes": 6,
+    "require_control": true,
+    "spend": {
+      "mode": "free-only"
+    }
+  },
+  "build": {
+    "format": "app",
+    "file": "OdrFixture.app"
+  },
+  "samples": [
+    {
+      "n": 1,
+      "outcome": "ok",
+      "timings_ms": {
+        "queue": 220,
+        "allocate": 223739,
+        "install": 22568,
+        "launch": 26409,
+        "first_frame": 15927,
+        "run_to_first_frame": 288871,
+        "teardown": 10499,
+        "session": 86254
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 8,
+        "screenshots_failed": 0,
+        "max_gap_ms": 10789
+      },
+      "tap_ms": 2539,
+      "tap_frame_change": 0,
+      "receipt_id": "r_72f0d363994cb380",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-macos15-iphone17-26-2",
+        "surface": "ios-simulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "ios",
+        "kind": "simulator",
+        "model": "iPhone 17",
+        "provider_device": "iPhone 17",
+        "device_id": "97452E4E-610F-48A2-A819-FDA0A45017D2",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 3,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 14,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver"
+    },
+    {
+      "n": 2,
+      "outcome": "ok",
+      "timings_ms": {
+        "queue": 320,
+        "allocate": 116072,
+        "install": 22362,
+        "launch": 16858,
+        "first_frame": 3415,
+        "run_to_first_frame": 159031,
+        "teardown": 11181,
+        "session": 87266
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 8,
+        "screenshots_failed": 0,
+        "max_gap_ms": 10443
+      },
+      "tap_ms": 3333,
+      "tap_frame_change": 0.987,
+      "receipt_id": "r_6070ff859b4ce9e8",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-macos15-iphone17-26-2",
+        "surface": "ios-simulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "ios",
+        "kind": "simulator",
+        "model": "iPhone 17",
+        "os_version": "26.0.1",
+        "provider_device": "iPhone 17",
+        "device_id": "97452E4E-610F-48A2-A819-FDA0A45017D2",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 3,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 14,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver"
+    },
+    {
+      "n": 3,
+      "outcome": "ok",
+      "timings_ms": {
+        "queue": 129,
+        "allocate": 162173,
+        "install": 21293,
+        "launch": 14927,
+        "first_frame": 3261,
+        "run_to_first_frame": 201788,
+        "teardown": 11831,
+        "session": 85330
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 8,
+        "screenshots_failed": 0,
+        "max_gap_ms": 9646
+      },
+      "tap_ms": 2779,
+      "tap_frame_change": 0.987,
+      "receipt_id": "r_7ea844d67138e153",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-macos15-iphone17-26-2",
+        "surface": "ios-simulator"
+      },
+      "device": {
+        "provider": "github-actions",
+        "platform": "ios",
+        "kind": "simulator",
+        "model": "iPhone 17",
+        "os_version": "26.0.1",
+        "provider_device": "iPhone 17",
+        "device_id": "97452E4E-610F-48A2-A819-FDA0A45017D2",
+        "confirmed_by": "driver"
+      },
+      "health": {
+        "heartbeats": 3,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 14,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "verified",
+      "closure_method": "driver"
+    }
+  ]
+}

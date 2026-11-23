@@ -4,6 +4,18 @@
 
 Method, definitions and limits: [METHODOLOGY.md](METHODOLOGY.md). Raw data: [results/](results/).
 
+## Sessions: Run to first frame
+
+Full lifecycle through the SDK: reserve, allocate, install the fixture build, launch, first usable screenshot, hold with a screenshot every 5 s, one tap, release, verify closure. "Run to first frame" starts when `allocate()` is called. All runs pooled; medians only.
+
+| Provider | Platform | Device | Runs | Samples | OK + closed | Run to first frame | Allocate | Install | Launch | First frame | Teardown | Dropped | Screenshot misses | Tap changed frame | Last run |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| github-actions | ios | iPhone 17, ? | 1 | 3 | 3 (100.0%) | 201.8 s | 162.2 s | 22.4 s | 16.9 s | 3.4 s | 11.2 s | 0 | 0 of 24 | 2 of 3 | 2026-11-23 |
+
+| Started (UTC) | Provider | Platform | Samples | OK + closed | Run to first frame (min / median / max) | Commit | Run | Raw |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-23 00:53 | github-actions | ios | 3 | 3 | 159.0 s / 201.8 s / 288.9 s | `488a10d` | [run](https://github.com/QA-army/open-device-router/actions/runs/45091307145) | [json](results/github-actions/session/ios/2026-11-23T01-08-41-288Z.json) |
+
 ## Cold boot (device only)
 
 All runs to date, pooled. p95 is shown only from 20 successful samples up. "Failed boots" counts samples where the device did not finish booting or could not return a screenshot.
