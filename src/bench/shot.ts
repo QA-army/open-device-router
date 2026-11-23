@@ -10,7 +10,9 @@ import { pollFrame } from "./simbench.js";
 import { errorText, FRAME_TIMEOUT_MS, now, since, sleep } from "./util.js";
 
 // `odr shot`: boot a fresh device, install an app, and capture the first frame it draws, then one
-// more frame (after a centre tap on Android, after the screen settles on iOS). Writes PNGs and an
+// more frame (after a centre tap on Android, after the screen settles on iOS). On Android the launch
+// waits for `am start -W`, so the first frame is the app's own window, not the system splash. On iOS
+// the first frame can be the app's launch screen; the settled frame is the one after it. Writes PNGs and an
 // `odr.shot/v1` JSON with timings. It reports what was on screen; it does not judge it.
 
 export interface ShotOptions {
@@ -43,6 +45,8 @@ export interface ShotResult {
     launch_to_first_frame?: number;
     /** Start (before device create or emulator start) to that frame. */
     run_to_first_frame?: number;
+    /** Android only: `am start -W` TotalTime, as reported by the OS (activity drawn, after any splash). */
+    android_total_time?: number | null;
     /** Tap command to a changed frame (Android). */
     tap_to_change?: number | null;
   };
@@ -153,7 +157,7 @@ export async function runShot(opts: ShotOptions): Promise<ShotResult> {
       await android.install(sdk, emu.serial, opts.app);
       res.timings_ms.install = since(s);
       s = now();
-      await android.launch(sdk, emu.serial, appId);
+      res.timings_ms.android_total_time = await android.launchWait(sdk, emu.serial, appId);
       res.timings_ms.launch = since(s);
       const first = await pollFrame(() => android.screenshot(sdk, emu!.serial), (png) => isAppFrame(png, home), FRAME_TIMEOUT_MS);
       res.timings_ms.launch_to_first_frame = since(s);
