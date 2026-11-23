@@ -16,7 +16,7 @@ Node.js 20.19 or newer.
 
 ```sh
 git clone https://github.com/QA-army/open-device-router.git
-cd opendevicerouter
+cd open-device-router
 npm install
 npm run check
 ```
