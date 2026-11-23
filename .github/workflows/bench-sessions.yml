@@ -58,11 +58,11 @@ jobs:
         run: |
           sdk="$ANDROID_HOME/cmdline-tools/latest/bin"
           yes | "$sdk/sdkmanager" --licenses > /dev/null || true
-          "$sdk/sdkmanager" "platform-tools" "emulator" "platforms;android-34" "system-images;android-34;aosp_atd;x86_64" > /dev/null
+          "$sdk/sdkmanager" "platform-tools" "emulator" "platforms;android-34" "system-images;android-34;google_apis;x86_64" > /dev/null
           mkdir -p "$ANDROID_AVD_HOME"
-          echo no | "$sdk/avdmanager" create avd --force -n odr_pixel_6 -k "system-images;android-34;aosp_atd;x86_64" -d pixel_6
+          echo no | "$sdk/avdmanager" create avd --force -n odr_pixel_6 -k "system-images;android-34;google_apis;x86_64" -d pixel_6
           # No GPU on the runner: software rendering, as in the cold-boot benchmark. Host GPU mode gives blank frames.
-          # ATD is Google's CI image; 4 cores and 4 GB keep SystemUI from raising ANR dialogs that block input.
+          # 4 cores and 4 GB keep SystemUI from raising ANR dialogs that block input.
           printf 'hw.gpu.enabled=yes\nhw.gpu.mode=swiftshader_indirect\nhw.cpu.ncore=4\nhw.ramSize=4096\n' >> "$ANDROID_AVD_HOME/odr_pixel_6.avd/config.ini"
           "$ANDROID_HOME/emulator/emulator" -list-avds | grep -qx odr_pixel_6 || { echo "setup fault: emulator does not list odr_pixel_6"; exit 1; }
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
