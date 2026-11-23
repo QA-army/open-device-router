@@ -11,6 +11,12 @@ export const STEP_TIMEOUT_MS = 10 * 60_000;
 export const BOOT_TIMEOUT_MS = 5 * 60_000;
 /** How long to wait for the app's first frame after launch, or for a tap to change the frame. */
 export const FRAME_TIMEOUT_MS = 60_000;
+/**
+ * First usable screenshot after boot. On GitHub macOS runners `simctl io screenshot` keeps failing for
+ * a while after `bootstatus` returns (about 40 s at the median in the cold-boot runs), so this matches
+ * the session SDK's default first-frame timeout.
+ */
+export const BOOT_FRAME_TIMEOUT_MS = 180_000;
 
 export async function sh(cmd: string, args: string[], opts: { timeout?: number; env?: NodeJS.ProcessEnv } = {}): Promise<string> {
   const { stdout } = await execFileP(cmd, args, { timeout: opts.timeout ?? STEP_TIMEOUT_MS, maxBuffer: 64 * 1024 * 1024, env: opts.env ?? process.env });
