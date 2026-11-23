@@ -206,8 +206,13 @@ class AgentDeviceDriver implements Driver {
     if (this.#lease && r.released !== true) return { status: "unverified", method: "driver", detail: "lease release not confirmed" };
     if (r.closed === false) return { status: "unverified", method: "driver", detail: "daemon shutdown pending" };
     if (this.#bootedByUs && this.#deviceId) {
-      const off = await deviceIsOff(this.#platform, this.#deviceId);
-      if (off === false) return { status: "unverified", method: "driver", detail: "device still booted" };
+      // Shutdown is asynchronous on both platforms; give it up to 60 s before calling it unverified.
+      let off = await deviceIsOff(this.#platform, this.#deviceId);
+      for (let i = 0; off === false && i < 30; i += 1) {
+        await new Promise((r) => setTimeout(r, 2000));
+        off = await deviceIsOff(this.#platform, this.#deviceId);
+      }
+      if (off === false) return { status: "unverified", method: "driver", detail: "device still booted 60 s after shutdown" };
     }
     return { status: "verified", method: "driver", detail: this.#lease ? "lease released, daemon closed" : "session closed, daemon closed" };
   }

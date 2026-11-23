@@ -130,6 +130,7 @@ function summarize(r) {
     health: r.health,
     closure: r.closure.status,
     closure_method: r.closure.method,
+    ...(r.closure.detail ? { closure_detail: r.closure.detail } : {}),
     ...(r.error ? { error: r.error } : {}),
   };
 }

@@ -48,6 +48,7 @@
           "tap_frame_change": { "type": "number", "minimum": 0, "maximum": 1 },
           "closure": { "enum": ["verified", "unverified", "failed", "not_started"] },
           "closure_method": { "type": "string" },
+          "closure_detail": { "type": "string" },
           "health": { "type": "object" },
           "device": { "type": ["object", "null"] },
           "route": { "type": ["object", "null"] },
