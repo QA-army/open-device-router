@@ -4,6 +4,20 @@
 
 Method, definitions and limits: [METHODOLOGY.md](METHODOLOGY.md). Raw data: [results/](results/).
 
+## Sessions: Run to first frame
+
+Full lifecycle through the SDK: reserve, allocate, install the fixture build, launch, first usable screenshot, hold with a screenshot every 5 s, one tap, release, verify closure. "Run to first frame" starts when `allocate()` is called. All runs pooled; medians only.
+
+| Provider | Platform | Device | Runs | Samples | OK + closed | Run to first frame | Allocate | Install | Launch | First frame | Teardown | Dropped | Screenshot misses | Tap changed frame | Last run |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| github-actions | android | n/a | 1 | 3 | 0 (0.0%) | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 of 0 | 0 of 0 | 2026-11-23 |
+| github-actions | ios | n/a | 1 | 3 | 0 (0.0%) | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 of 0 | 0 of 0 | 2026-11-23 |
+
+| Started (UTC) | Provider | Platform | Samples | OK + closed | Run to first frame (min / median / max) | Commit | Run | Raw |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-23 00:12 | github-actions | android | 3 | 0 | n/a / n/a / n/a | `2315b98` | [run](https://github.com/QA-army/open-device-router/actions/runs/45087315841) | [json](results/github-actions/session/android/2026-11-23T00-13-00-679Z.json) |
+| 2026-11-23 00:11 | github-actions | ios | 3 | 0 | n/a / n/a / n/a | `2315b98` | [run](https://github.com/QA-army/open-device-router/actions/runs/45087315841) | [json](results/github-actions/session/ios/2026-11-23T00-12-30-548Z.json) |
+
 ## Cold boot (device only)
 
 All runs to date, pooled. p95 is shown only from 20 successful samples up. "Failed boots" counts samples where the device did not finish booting or could not return a screenshot.

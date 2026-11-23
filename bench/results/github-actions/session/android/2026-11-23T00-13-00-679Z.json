@@ -1,0 +1,156 @@
+{
+  "schema": "odr.bench.session/v1",
+  "provider": "github-actions",
+  "platform": "android",
+  "measurement": "session",
+  "odr_version": "0.1.0",
+  "started_at": "2026-11-23T00:12:59.824Z",
+  "finished_at": "2026-11-23T00:13:00.679Z",
+  "harness": {
+    "repository": "QA-army/open-device-router",
+    "commit": "2315b982a549fc3cb1f38ff318ce802b39250f0f",
+    "script": "bench/runners/session.mjs",
+    "run_url": "https://github.com/QA-army/open-device-router/actions/runs/45087315841"
+  },
+  "environment": {
+    "runner_label": "ubuntu-24.04",
+    "image_os": "ubuntu24",
+    "image_version": "20261116.376.1",
+    "os": "linux",
+    "os_release": "7.0.0-1017-azure",
+    "arch": "x64",
+    "cpu_model": "AMD EPYC 9V74 80-Core Processor",
+    "cpu_count": 4,
+    "memory_gb": 15.6,
+    "tools": {
+      "node": "v22.23.5",
+      "agent-device": "0.21.41",
+      "@appetize/cli": "not installed"
+    }
+  },
+  "request": {
+    "provider": "github-actions",
+    "platform": "android",
+    "build_format": "apk",
+    "needs": [
+      "screenshot",
+      "tap"
+    ],
+    "minutes": 6,
+    "require_control": true,
+    "spend": {
+      "mode": "free-only"
+    }
+  },
+  "build": {
+    "format": "apk",
+    "file": "odr-fixture.apk"
+  },
+  "samples": [
+    {
+      "n": 1,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 120,
+        "teardown": 42,
+        "session": 0
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "max_gap_ms": 0
+      },
+      "receipt_id": "r_e3342b691b436cd2",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": null,
+      "health": {
+        "heartbeats": 0,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "unverified",
+      "closure_method": "driver",
+      "error": {
+        "code": "allocate_failed",
+        "message": "tenant isolation requires lease id."
+      }
+    },
+    {
+      "n": 2,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 74,
+        "teardown": 15,
+        "session": 0
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "max_gap_ms": 0
+      },
+      "receipt_id": "r_a79ed3ab10b71e84",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": null,
+      "health": {
+        "heartbeats": 0,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "unverified",
+      "closure_method": "driver",
+      "error": {
+        "code": "allocate_failed",
+        "message": "tenant isolation requires lease id."
+      }
+    },
+    {
+      "n": 3,
+      "outcome": "failed",
+      "timings_ms": {
+        "queue": 41,
+        "teardown": 17,
+        "session": 0
+      },
+      "hold": {
+        "seconds": 60,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "max_gap_ms": 0
+      },
+      "receipt_id": "r_d34e48e7f60e9119",
+      "route": {
+        "provider": "github-actions",
+        "profile": "gha-ubuntu-pixel6-api34",
+        "surface": "android-emulator"
+      },
+      "device": null,
+      "health": {
+        "heartbeats": 0,
+        "heartbeat_failures": 0,
+        "screenshots_ok": 0,
+        "screenshots_failed": 0,
+        "dropped": false
+      },
+      "closure": "unverified",
+      "closure_method": "driver",
+      "error": {
+        "code": "allocate_failed",
+        "message": "tenant isolation requires lease id."
+      }
+    }
+  ]
+}
