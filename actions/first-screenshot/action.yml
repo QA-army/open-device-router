@@ -25,6 +25,13 @@ inputs:
     description: iOS. Build configuration
     required: false
     default: Debug
+  skip-macro-validation:
+    description: >-
+      iOS. Pass -skipMacroValidation to xcodebuild. CI cannot approve Swift macro packages interactively,
+      so projects using macros (TCA, swift-dependencies) need this. It runs the macro plugins your
+      packages declare without a trust prompt.
+    required: false
+    default: "false"
   runtime:
     description: iOS. Runtime version, for example 26.0. Defaults to the newest installed.
     required: false
@@ -95,13 +102,16 @@ runs:
         WORKSPACE: ${{ inputs.workspace }}
         SCHEME: ${{ inputs.scheme }}
         CONFIGURATION: ${{ inputs.configuration }}
+        SKIP_MACRO_VALIDATION: ${{ inputs.skip-macro-validation }}
       run: |
         set -euo pipefail
+        EXTRA=()
+        [ "$SKIP_MACRO_VALIDATION" = "true" ] && EXTRA+=(-skipMacroValidation)
         [ -n "$SCHEME" ] || { echo "::error::set scheme (with project or workspace), or app-path"; exit 1; }
         if [ -n "$WORKSPACE" ]; then SRC=(-workspace "$WORKSPACE"); elif [ -n "$PROJECT" ]; then SRC=(-project "$PROJECT"); else echo "::error::set project or workspace"; exit 1; fi
         DD="$RUNNER_TEMP/odr-dd"
         xcodebuild "${SRC[@]}" -scheme "$SCHEME" -configuration "$CONFIGURATION" -sdk iphonesimulator \
-          -destination 'generic/platform=iOS Simulator' -derivedDataPath "$DD" \
+          -destination 'generic/platform=iOS Simulator' -derivedDataPath "$DD" ${EXTRA[@]+"${EXTRA[@]}"} \
           CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build -quiet
         APP=$(find "$DD/Build/Products/$CONFIGURATION-iphonesimulator" -maxdepth 1 -name '*.app' -type d | head -1)
         [ -n "$APP" ] || { echo "::error::no .app under $DD/Build/Products/$CONFIGURATION-iphonesimulator"; exit 1; }

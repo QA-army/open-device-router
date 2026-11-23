@@ -25,9 +25,9 @@ jobs:
       fail-fast: false
       matrix:
         app:
-          - { name: SyncUps, repo: pointfreeco/swift-composable-architecture, project: Examples/SyncUps/SyncUps.xcodeproj, scheme: SyncUps, prepare: "" }
-          - { name: CountriesSwiftUI, repo: nalexn/clean-architecture-swiftui, project: CountriesSwiftUI.xcodeproj, scheme: CountriesSwiftUI, prepare: "" }
-          - { name: IceCubesApp, repo: Dimillian/IceCubesApp, project: IceCubesApp.xcodeproj, scheme: IceCubesApp, prepare: "cp IceCubesApp.xcconfig.template IceCubesApp.xcconfig" }
+          - { name: SyncUps, repo: pointfreeco/swift-composable-architecture, project: Examples/SyncUps/SyncUps.xcodeproj, scheme: SyncUps, prepare: "", skip_macros: "true" }
+          - { name: CountriesSwiftUI, repo: nalexn/clean-architecture-swiftui, project: CountriesSwiftUI.xcodeproj, scheme: CountriesSwiftUI, prepare: "", skip_macros: "false" }
+          # IceCubesApp removed 2026-11-22: upstream main fails to compile on the runner Xcode (ToolbarTab.swift:82 key path), not an ODR failure.
     steps:
       - uses: actions/checkout@v7
       - uses: actions/checkout@v7
@@ -45,6 +45,7 @@ jobs:
           platform: ios
           project: app/${{ matrix.app.project }}
           scheme: ${{ matrix.app.scheme }}
+          skip-macro-validation: ${{ matrix.app.skip_macros }}
           comment: "false"
           artifact-name: odr-first-screenshot-${{ matrix.app.name }}
       - run: echo "${{ matrix.app.name }} ok=${{ steps.shot.outputs.ok }} launch_ms=${{ steps.shot.outputs.launch-to-first-frame-ms }}"
