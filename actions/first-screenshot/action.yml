@@ -1,0 +1,209 @@
+name: OpenDeviceRouter first screenshot
+description: Build your iOS or Android app, boot a fresh simulator or emulator, and post the first frame it draws on the pull request. No pass/fail verdict.
+author: QA.army
+branding:
+  icon: smartphone
+  color: green
+
+inputs:
+  platform:
+    description: ios or android
+    required: true
+  app-path:
+    description: iOS. Path to a .app built for the simulator. Skip the build step when set.
+    required: false
+  project:
+    description: iOS. Path to the .xcodeproj (use this or workspace)
+    required: false
+  workspace:
+    description: iOS. Path to the .xcworkspace
+    required: false
+  scheme:
+    description: iOS. Scheme to build
+    required: false
+  configuration:
+    description: iOS. Build configuration
+    required: false
+    default: Debug
+  skip-macro-validation:
+    description: >-
+      iOS. Pass -skipMacroValidation to xcodebuild. CI cannot approve Swift macro packages interactively,
+      so projects using macros (TCA, swift-dependencies) need this. It runs the macro plugins your
+      packages declare without a trust prompt.
+    required: false
+    default: "false"
+  runtime:
+    description: iOS. Runtime version, for example 26.0. Defaults to the newest installed.
+    required: false
+  device-type:
+    description: iOS. Device type name, for example "iPhone 17". Defaults to the newest iPhone for the runtime.
+    required: false
+  apk-path:
+    description: Android. Path to a debug .apk. Skip the Gradle step when set.
+    required: false
+  gradle-task:
+    description: Android. Gradle task that builds the APK, for example ":app:assembleDebug"
+    required: false
+  system-image:
+    description: Android. sdkmanager system image package
+    required: false
+    default: system-images;android-34;google_apis;x86_64
+  tap:
+    description: Android. Tap the centre after the first frame and capture again
+    required: false
+    default: "true"
+  comment:
+    description: Post or update a PR comment. Needs pull-requests and contents write permission. Fork PRs fall back to the job summary.
+    required: false
+    default: "true"
+  screenshots-branch:
+    description: Branch the PNGs are pushed to so the comment can show them
+    required: false
+    default: odr-screenshots
+  artifact-name:
+    description: Artifact name for the PNGs and shot.json. Set a unique one per matrix job.
+    required: false
+    default: ""
+  github-token:
+    description: Token for the comment and the screenshots branch
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  ok:
+    description: true when a frame was captured
+    value: ${{ steps.shot.outputs.ok }}
+  dir:
+    description: Directory with first-frame.png, the second frame and shot.json
+    value: ${{ steps.shot.outputs.dir }}
+  launch-to-first-frame-ms:
+    description: Launch command to the first frame that differs from the pre-launch screen
+    value: ${{ steps.shot.outputs.launch_ms }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 22
+
+    - name: Build odr
+      shell: bash
+      working-directory: ${{ github.action_path }}/../..
+      run: |
+        npm ci --no-audit --no-fund --loglevel=error
+        npm run -s build
+
+    - name: Build the iOS app
+      if: inputs.platform == 'ios' && inputs.app-path == ''
+      shell: bash
+      env:
+        PROJECT: ${{ inputs.project }}
+        WORKSPACE: ${{ inputs.workspace }}
+        SCHEME: ${{ inputs.scheme }}
+        CONFIGURATION: ${{ inputs.configuration }}
+        SKIP_MACRO_VALIDATION: ${{ inputs.skip-macro-validation }}
+      run: |
+        set -euo pipefail
+        EXTRA=()
+        [ "$SKIP_MACRO_VALIDATION" = "true" ] && EXTRA+=(-skipMacroValidation)
+        [ -n "$SCHEME" ] || { echo "::error::set scheme (with project or workspace), or app-path"; exit 1; }
+        if [ -n "$WORKSPACE" ]; then SRC=(-workspace "$WORKSPACE"); elif [ -n "$PROJECT" ]; then SRC=(-project "$PROJECT"); else echo "::error::set project or workspace"; exit 1; fi
+        DD="$RUNNER_TEMP/odr-dd"
+        xcodebuild "${SRC[@]}" -scheme "$SCHEME" -configuration "$CONFIGURATION" \
+          -destination 'generic/platform=iOS Simulator' -derivedDataPath "$DD" ${EXTRA[@]+"${EXTRA[@]}"} \
+          CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build -quiet
+        APP=$(find "$DD/Build/Products/$CONFIGURATION-iphonesimulator" -maxdepth 1 -name '*.app' -type d | head -1)
+        [ -n "$APP" ] || { echo "::error::no .app under $DD/Build/Products/$CONFIGURATION-iphonesimulator"; exit 1; }
+        echo "ODR_APP=$APP" >> "$GITHUB_ENV"
+
+    - name: Use the given app
+      if: inputs.app-path != '' || inputs.apk-path != ''
+      shell: bash
+      env:
+        APP: ${{ inputs.platform == 'ios' && inputs.app-path || inputs.apk-path }}
+      run: echo "ODR_APP=$APP" >> "$GITHUB_ENV"
+
+    - name: Build the Android app
+      if: inputs.platform == 'android' && inputs.apk-path == ''
+      shell: bash
+      env:
+        TASK: ${{ inputs.gradle-task }}
+      run: |
+        set -euo pipefail
+        [ -n "$TASK" ] || { echo "::error::set gradle-task or apk-path"; exit 1; }
+        ./gradlew "$TASK" --no-daemon -q
+        APK=$(find . -path '*/build/outputs/apk/*' -name '*.apk' -newer gradlew -type f | grep -v androidTest | head -1)
+        [ -n "$APK" ] || { echo "::error::no APK under build/outputs/apk after $TASK"; exit 1; }
+        echo "ODR_APP=$APK" >> "$GITHUB_ENV"
+
+    - name: Prepare the Android emulator
+      if: inputs.platform == 'android'
+      shell: bash
+      env:
+        IMAGE: ${{ inputs.system-image }}
+      run: |
+        set -euo pipefail
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules >/dev/null
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+        fi
+        SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+        yes | "$SDKM" --licenses >/dev/null || true
+        "$SDKM" --install emulator platform-tools "$IMAGE" >/dev/null
+        echo "ODR_SIMBENCH_IMAGE=$IMAGE" >> "$GITHUB_ENV"
+        echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> "$GITHUB_ENV"
+
+    - name: First screenshot
+      id: shot
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+        RUNTIME: ${{ inputs.runtime }}
+        DEVICE_TYPE: ${{ inputs.device-type }}
+        TAP: ${{ inputs.tap }}
+        ODR: ${{ github.action_path }}/../../dist/cli/index.js
+      run: |
+        set -uo pipefail
+        OUT="$RUNNER_TEMP/odr-shot"
+        ARGS=(shot --platform "$PLATFORM" --out "$OUT")
+        if [ "$PLATFORM" = ios ]; then
+          ARGS+=(--app "$ODR_APP")
+          [ -n "$RUNTIME" ] && ARGS+=(--runtime "$RUNTIME")
+          [ -n "$DEVICE_TYPE" ] && ARGS+=(--device-type "$DEVICE_TYPE")
+        else
+          ARGS+=(--apk "$ODR_APP" --headless)
+          [ "$TAP" = "false" ] && ARGS+=(--no-tap)
+        fi
+        ODR_HOME="$RUNNER_TEMP/odr-home" node "$ODR" "${ARGS[@]}"
+        CODE=$?
+        echo "dir=$OUT" >> "$GITHUB_OUTPUT"
+        if [ -f "$OUT/shot.json" ]; then
+          echo "ok=$(node -p "require('$OUT/shot.json').ok")" >> "$GITHUB_OUTPUT"
+          echo "launch_ms=$(node -p "require('$OUT/shot.json').timings_ms.launch_to_first_frame ?? ''")" >> "$GITHUB_OUTPUT"
+        else
+          echo "ok=false" >> "$GITHUB_OUTPUT"
+        fi
+        exit 0
+
+    - uses: actions/upload-artifact@v7
+      if: always() && steps.shot.outputs.dir != ''
+      with:
+        name: ${{ inputs.artifact-name || format('odr-first-screenshot-{0}', inputs.platform) }}
+        path: ${{ steps.shot.outputs.dir }}
+        if-no-files-found: ignore
+
+    - name: Post the screenshots
+      if: always() && steps.shot.outputs.dir != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        DIR: ${{ steps.shot.outputs.dir }}
+        COMMENT: ${{ inputs.comment }}
+        BRANCH: ${{ inputs.screenshots-branch }}
+        PLATFORM: ${{ inputs.platform }}
+        PR: ${{ github.event.pull_request.number }}
+        HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        ODR_ROOT: ${{ github.action_path }}/../..
+      run: node "$ODR_ROOT/actions/first-screenshot/post.mjs"

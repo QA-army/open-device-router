@@ -116,6 +116,22 @@ export const android = {
   install: (sdk: AndroidSdk, serial: string, apk: string) => sh(sdk.adb, ["-s", serial, "install", "-r", "-t", apk]),
   uninstall: (sdk: AndroidSdk, serial: string, pkg: string) => trySh(sdk.adb, ["-s", serial, "uninstall", pkg]),
   launch: (sdk: AndroidSdk, serial: string, pkg: string) => sh(sdk.adb, ["-s", serial, "shell", "monkey", "-p", pkg, "-c", "android.intent.category.LAUNCHER", "1"]),
+  /**
+   * Starts the launcher activity with `am start -W`, which returns once the activity has drawn its
+   * first frame (after the system splash on Android 12+). Returns Android's own TotalTime, or null
+   * when the launcher activity cannot be resolved and monkey was used instead.
+   */
+  async launchWait(sdk: AndroidSdk, serial: string, pkg: string): Promise<number | null> {
+    const resolved = await trySh(sdk.adb, ["-s", serial, "shell", "cmd", "package", "resolve-activity", "--brief", "-c", "android.intent.category.LAUNCHER", pkg]);
+    const component = resolved?.trim().split("\n").pop()?.trim();
+    if (!component || !component.includes("/")) {
+      await android.launch(sdk, serial, pkg);
+      return null;
+    }
+    const out = await sh(sdk.adb, ["-s", serial, "shell", "am", "start", "-W", "-n", component], { timeout: 120_000 });
+    const m = /TotalTime:\s*(\d+)/.exec(out);
+    return m ? Number(m[1]) : null;
+  },
   tap: (sdk: AndroidSdk, serial: string, x: number, y: number) => sh(sdk.adb, ["-s", serial, "shell", "input", "tap", String(Math.round(x)), String(Math.round(y))]),
   async stop(sdk: AndroidSdk, emu: RunningEmulator): Promise<void> {
     await trySh(sdk.adb, ["-s", emu.serial, "emu", "kill"], { timeout: 30_000 });

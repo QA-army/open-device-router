@@ -9,6 +9,8 @@ const execFileP = promisify(execFile);
 export const STEP_TIMEOUT_MS = 10 * 60_000;
 /** A boot that has not completed by this point counts as a failed sample. */
 export const BOOT_TIMEOUT_MS = 5 * 60_000;
+/** `odr shot` is not a benchmark, so it waits longer: a busy macos-26 runner took over 5 min to boot one Simulator. */
+export const SHOT_BOOT_TIMEOUT_MS = 10 * 60_000;
 /** How long to wait for the app's first frame after launch, or for a tap to change the frame. */
 export const FRAME_TIMEOUT_MS = 60_000;
 /**

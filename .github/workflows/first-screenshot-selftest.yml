@@ -1,0 +1,52 @@
+name: first-screenshot self-test
+
+# Runs the first-screenshot action against the SimBench fixture apps and posts on the PR.
+on:
+  pull_request:
+    paths:
+      - actions/first-screenshot/**
+      - src/bench/shot.ts
+      - src/cli/shot-command.ts
+      - .github/workflows/first-screenshot-selftest.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: first-screenshot-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the fixture app
+        run: echo "APP=$(bash bench/fixtures/ios/build.sh "$RUNNER_TEMP/fixture" | tail -1)" >> "$GITHUB_ENV"
+      - id: shot
+        uses: ./actions/first-screenshot
+        with:
+          platform: ios
+          app-path: ${{ env.APP }}
+      - run: |
+          echo "ok=${{ steps.shot.outputs.ok }} launch_ms=${{ steps.shot.outputs.launch-to-first-frame-ms }}"
+          [ "${{ steps.shot.outputs.ok }}" = "true" ]
+
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the fixture app
+        run: echo "APK=$(bash bench/fixtures/android/build.sh "$RUNNER_TEMP/fixture" | tail -1)" >> "$GITHUB_ENV"
+      - id: shot
+        uses: ./actions/first-screenshot
+        with:
+          platform: android
+          apk-path: ${{ env.APK }}
+      - run: |
+          echo "ok=${{ steps.shot.outputs.ok }} launch_ms=${{ steps.shot.outputs.launch-to-first-frame-ms }}"
+          [ "${{ steps.shot.outputs.ok }}" = "true" ]
