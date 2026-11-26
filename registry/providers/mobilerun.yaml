@@ -1,0 +1,52 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: mobilerun
+name: Mobilerun
+status: candidate
+checked_at: '2026-11-26'
+homepage: https://mobilerun.ai/
+surfaces:
+  - android-real
+  - ios-real
+hands:
+  kind: unknown
+  notes: Pricing describes an API and hosted phones. No session driver is built. Onboarding stub.
+signup:
+  required: true
+  url: https://cloud.mobilerun.ai
+  evidence:
+    - not_researched
+  card_required: unknown
+  phone_required: unknown
+  notes: Pricing page links "Start free" to https://cloud.mobilerun.ai. The form was not opened.
+credentials:
+  kind: unknown
+  acquire: unknown
+  notes: The pricing and credits pages do not name an env var.
+allowances:
+  - type: monthly
+    amount: 60
+    unit: credit
+    max_parallel: 1
+    scope: Free plan. 60 phone credits a month.
+    per_minute:
+      android-real: 1
+      ios-real: 3
+    source: https://mobilerun.ai/pricing/
+    overage: stops
+    overage_source: https://mobilerun.ai/pricing/
+    notes: An Android minute uses 1 phone credit and an iPhone minute uses 3, so 60 credits is 60
+      Android minutes or 20 iPhone minutes. Free has no overage charges. When the allowance runs out
+      the person can buy a prepaid top-up or upgrade; odr will not buy a top-up. Concurrent phones
+      on Free are 1. The pricing page calls these on-demand Android phones and iPhones. A dedicated
+      iPhone add-on is described separately as a physical device.
+paid:
+  summary: Developer plan $20 per month with 600 phone credits. Paid plans continue past the
+    allowance at $0.03 per phone credit. Prepaid phone credits are $3 per 100.
+  source: https://mobilerun.ai/pricing/
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: unknown
+  third_party_access: unknown
+sources:
+  - https://mobilerun.ai/pricing/
+  - https://docs.mobilerun.ai/credits

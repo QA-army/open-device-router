@@ -642,7 +642,9 @@
         "driver": {
           "enum": [
             "agent-device",
-            "appetize-cli"
+            "appetize-cli",
+            "aws-device-farm",
+            "stub"
           ]
         },
         "package": {

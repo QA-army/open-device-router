@@ -50,6 +50,15 @@ export function keysMarkdown(providers: Provider[]): string {
     if (p.credentials.notes) lines.push(`- Note: ${p.credentials.notes}`);
     if (p.credentials.source) lines.push(`- Source: ${p.credentials.source}`);
   }
-  lines.push("", "Other providers in the registry have no session driver yet. See `odr providers`.", "");
+  const rest = providers.filter((p) => p.status !== "launch" && p.id !== "local");
+  lines.push("", "## Other providers", "");
+  lines.push("These are in the onboarding walk (`odr onboard`). A session driver is built only where the table says so. The others are stubs: odr records the account and will not start a session.", "");
+  lines.push("| Provider | Adapter | Env vars | Sign up |");
+  lines.push("|---|---|---|---|");
+  for (const p of rest) {
+    const adapter = p.control && p.control.driver !== "stub" && p.control.evidence !== "proposed" ? "built" : "stub";
+    lines.push(`| ${p.name} | ${adapter} | ${envNames(p).map((n) => `\`${n}\``).join(", ") || "none listed"} | ${p.signup.url ? `[sign up](${p.signup.url})` : p.homepage} |`);
+  }
+  lines.push("", "Walk them in order with `odr onboard`. A person finishes each signup. odr never submits the form.", "");
   return lines.join("\n");
 }

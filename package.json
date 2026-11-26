@@ -63,12 +63,18 @@
       "types": "./dist/sdk/midscene.d.ts",
       "import": "./dist/sdk/midscene.js"
     },
+    "./onboard": {
+      "types": "./dist/sdk/onboard.d.ts",
+      "import": "./dist/sdk/onboard.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
     "dist",
     "registry",
     "schema",
+    "skills",
+    "docs/onboarding.md",
     "README.md",
     "LICENSE"
   ]

@@ -16,7 +16,8 @@ flowchart LR
   registry[("Provider registry<br/>registry/providers/*.yaml")] --> router
   ledger[("Local ledger<br/>~/.opendevicerouter/state.json")] --> router
   router -->|"decision + reason"| hands["Hands adapter"]
-  hands -->|"agent-device"| mobile["iOS and Android:<br/>local, GitHub runner, Limrun, Revyl, AWS Device Farm"]
+  hands -->|"agent-device"| mobile["iOS and Android:<br/>local, GitHub runner, Limrun, Revyl"]
+  hands -->|"Device Farm API"| aws["AWS Device Farm<br/>remote access"]
   hands -.->|"CDP / WebDriver pass-through (proposed)"| web["Browser clouds"]
   mobile -->|"screenshots, snapshots, logs"| caller
 ```
@@ -50,7 +51,9 @@ For a request `{surface, minutes, parallel}` every allowance of every provider i
 5. An open-source program allowance is used only after you confirm you were accepted.
 6. The allowance can be metered in minutes. Credit and dollar allowances need a documented per-minute rate.
 7. The session fits the provider's session-length and concurrency caps.
-8. The allowance has not expired and has enough left.
+8. A provider with no session driver is skipped (`adapter_stub`). Onboarding can still record the account.
+9. The allowance has not expired and has enough left.
+10. Free-only mode refuses an allowance that bills on overage unless a provider usage figure was recorded in the last 24 hours and the confirmed remainder covers the session. `odr reconcile aws-device-farm` sums metered device minutes across every project. If a session is still open or a meter is missing, reconcile fails and the router keeps refusing.
 
 Eligible allowances are ordered: your own hardware, public-repository runners, daily, monthly, open-source program, one-time trial. Capacity that renews is spent before capacity that does not. Ties go to the allowance with the most left, then by provider id.
 
@@ -74,7 +77,7 @@ Spend limits, quotas, session caps, capability checks, and which accounts exist.
 
 OpenDeviceRouter does not implement taps, swipes, typing, or snapshots.
 
-- **Mobile:** [agent-device](https://github.com/callstack/agent-device) (MIT) is the control layer. It drives local simulators, emulators, and USB devices, and connects to BrowserStack, AWS Device Farm, TestMu AI, Limrun, and Revyl through `agent-device connect <provider>` ([agent-device device clouds](https://agent-device.dev/docs/device-clouds), read 2026-11-22). It has a CLI, an MCP server, and a Node.js client. odr runs it in-process through its Node API (`startAgentDevice`) from `src/session/drivers/agent-device.ts`. Appetize is driven through `@appetize/cli` from `src/session/drivers/appetize.ts`. Both drivers map the session interface (screenshot, tap, type, swipe, key, install, launch, release) onto those tools and verify closure; neither implements input or capture itself.
+- **Mobile:** [agent-device](https://github.com/callstack/agent-device) (MIT) is the control layer for local simulators, emulators, USB devices, Limrun, and Revyl. odr runs it in-process through its Node API (`startAgentDevice`) from `src/session/drivers/agent-device.ts`. Appetize is driven through `@appetize/cli` from `src/session/drivers/appetize.ts`. AWS Device Farm remote-access sessions are created, stopped, and checked through the Device Farm API from `src/session/drivers/aws-device-farm.ts` (the AWS CLI and the standard credential chain; tests mock that client). Pixel input on Device Farm is an interactor the driver refuses to start a metered session without. BrowserStack, Sauce Labs, TestMu AI, and the other registry entries without a `control` block are onboarding stubs: `odr onboard` lists them and `odr run` will not start them.
 - **Web (proposed):** existing clients keep speaking CDP or WebDriver. The proxy forwards the connection to the chosen provider and does not reinterpret commands.
 
 The caller, whether an agent or a test suite, decides what to tap. The router decides where.

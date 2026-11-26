@@ -14,7 +14,9 @@ Start with a small number of targets and a public benchmark, not a long list of 
 - Free-tier index generated from the registry.
 - Deterministic routing decision, local ledger, and guided connect as a CLI (`odr providers | show | validate | freshness | free-tiers | connect | status | plan | record`).
 - Session lifecycle (v0.1.0): `odr run` and the Node SDK (`allocate`, `withSession`, `attach`) reserve under a lock, allocate, install, launch, wait for the first usable frame, heartbeat with screenshot probes, release on every exit path, verify closure, and write an `odr.receipt/v1`. `odr sweep` cleans up after dead workers.
-- Drivers: agent-device (local, GitHub runners, Limrun, Revyl, AWS Device Farm) and the Appetize CLI. Midscene interface adapter.
+- Drivers: agent-device (local, GitHub runners, Limrun, Revyl), the Appetize CLI, and AWS Device Farm remote-access sessions (create, stop, delete upload, closure from the Device Farm API, free-minute reconcile). Pixel input on Device Farm is refused until an interactor is attached; that path was tested with a mock client, not a live AWS account. Midscene interface adapter.
+- `odr onboard` and `odr providers status`: a machine-readable catalog of every registry provider (signup URL, env vars, free allowance, built vs stub) and a walk a coding agent can follow. The person completes each signup. Firebase Test Lab is excluded; see the migration FAQ.
+- Onboarding stubs for every registry provider that does not have a session driver, including BrowserStack, Sauce Labs, TestMu AI, Kobiton, Mobilerun, and Run Cloud. `odr run` will not start them.
 - Router v2: platform, model, OS range, build format, inputs, keys, parallel caps, device profiles; free-only and budget spend modes.
 - Appetize usage reconciliation (`odr reconcile appetize`).
 - `odr keys`, `odr doctor`, generated `docs/keys.md`, `llms.txt`.

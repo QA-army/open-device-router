@@ -6,6 +6,7 @@ import { loadState, odrHome, withLock } from "../core/ledger.js";
 import type { RouteRequest, SpendPolicy } from "../core/router.js";
 import { BUILD_FORMATS, INPUTS, KEYS, type BuildFormat, type DeviceKind, type Input, type Key, type Platform, type Provider } from "../core/types.js";
 import { allocate, RouteRefusedError, SessionError, sweep } from "../session/session.js";
+import { credentialStatus } from "../onboarding/catalog.js";
 import { reconcile } from "../session/reconcile.js";
 import { serveSession } from "../session/serve.js";
 import type { BuildSource } from "../session/types.js";
@@ -244,13 +245,14 @@ export async function cmdDoctor(providers: Provider[]): Promise<void> {
   out.push(`@midscene/core: ${(await has("@midscene/core/device")) ? "installed" : "not installed (optional, for midsceneInterface)"}`);
   const { execFile } = await import("node:child_process");
   const which = (bin: string, args: string[]) => new Promise<boolean>((r) => execFile(bin, args, (e) => r(!e)));
+  out.push(`aws CLI: ${(await which("aws", ["--version"])) ? "found" : "not found (needed for AWS Device Farm; credential chain, no keys stored)"}`);
   out.push(`appetize CLI: ${(await which(process.env.ODR_APPETIZE_CLI ?? "appetize", ["--version"])) ? "found" : "not found (npm i -g @appetize/cli)"}`);
   out.push(`xcrun simctl: ${(await which("xcrun", ["simctl", "help"])) ? "found" : "not found (iOS Simulator needs macOS + Xcode)"}`);
   out.push(`adb: ${(await which("adb", ["version"])) ? "found" : "not found (Android needs platform-tools)"}`);
   out.push("");
   for (const p of providers.filter((x) => x.control)) {
     const c = st.connections[p.id];
-    const missing = envNames(p).filter((n) => !process.env[n]);
+    const missing = p.credentials.kind === "iam_role" ? credentialStatus(p).missing : envNames(p).filter((n) => !process.env[n]);
     out.push(`${p.id.padEnd(16)} ${c ? `connected${c.plan ? ` (${c.plan})` : ""}` : "not connected"}${missing.length ? `, missing ${missing.join(", ")}` : ""}`);
   }
   const open = st.reservations.filter((r) => ["reserved", "active", "releasing", "closure_unverified"].includes(r.status));

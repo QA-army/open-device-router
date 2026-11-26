@@ -1,0 +1,48 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: run-cloud
+name: Run Cloud
+status: candidate
+checked_at: '2026-11-26'
+homepage: https://run.cloud/
+surfaces:
+  - ios-simulator
+  - android-emulator
+hands:
+  kind: unknown
+  notes: The pricing page says API and CLI control are included. No session driver is built.
+    Onboarding stub.
+signup:
+  required: true
+  evidence:
+    - not_researched
+  card_required: false
+  phone_required: unknown
+  notes: The pricing page says the starting allowance needs no card. The signup form was not opened,
+    so there is no signup URL yet.
+credentials:
+  kind: unknown
+  acquire: unknown
+  notes: The pricing page does not name an env var.
+allowances:
+  - type: one_time
+    amount: 5
+    unit: usd
+    scope: Starting usage with no card. The page does not say this $5 renews.
+    per_minute:
+      ios-simulator: 0.02
+      android-emulator: 0.02
+    source: https://run.cloud/pricing/
+    overage: unknown
+    notes: Simulator and emulator sessions are $0.02 per active minute, so $5 is 250 minutes at that
+      rate. Adding a card makes the first $15 of usage free every month (up to 750 minutes). That
+      card plan is not a separate allowance here, because a card is on file and the page prices
+      minutes at $0.02 after the included usage.
+paid:
+  summary: $0.02 per active iOS simulator minute and $0.02 per active Android emulator minute.
+  source: https://run.cloud/pricing/
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: unknown
+  third_party_access: unknown
+sources:
+  - https://run.cloud/pricing/
