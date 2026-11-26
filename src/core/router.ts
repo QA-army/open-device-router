@@ -57,6 +57,7 @@ export type SkipReason =
   | "no_verified_control_path"
   | "control_path_does_not_cover_surface"
   | "no_session_driver"
+  | "adapter_stub"
   | "screenshot_not_guaranteed"
   | "input_not_supported"
   | "key_not_supported"
@@ -209,6 +210,10 @@ function evaluate(
   if (connection.surfaces && !connection.surfaces.includes(surface)) return skip("surface_not_available_here");
   if (p.hands.kind === "unknown") return skip("no_verified_control_path");
   if (p.hands.surfaces && !p.hands.surfaces.includes(surface)) return skip("control_path_does_not_cover_surface");
+  // A registry entry without a session driver is onboarding-only. odr run must not select it.
+  if (!p.control || p.control.driver === "stub" || p.control.evidence === "proposed") {
+    return skip("adapter_stub", { detail: "no session driver; odr onboard records the account and odr run will not start it" });
+  }
 
   let profile: DeviceProfile | undefined;
   const drives = req.require_control || (req.needs?.length ?? 0) > 0 || req.keys?.length || req.build_format || req.model || req.os;
@@ -234,8 +239,12 @@ function evaluate(
   if (a.type === "unverified") return skip("renewal_unverified");
   if (a.type === "oss_program" && !connection.oss_program) return skip("oss_program_not_confirmed");
 
-  const cost = costInUnits(a, surface, req.minutes);
+  let cost = costInUnits(a, surface, req.minutes);
   if (cost === undefined) return skip("cannot_meter_unit");
+  // Metered providers bill whole minutes. Reserve the rounded-up minute so the session cannot spill into a paid minute odr did not hold.
+  if (a.overage === "bills" && (a.unit === "device_minute" || a.unit === "browser_minute" || a.unit === "minute")) {
+    cost = Math.ceil(cost);
+  }
   base.cost = cost;
   const cap = Math.min(a.max_session_minutes ?? Infinity, p.control?.max_session_minutes ?? Infinity);
   if (req.minutes > cap) return skip("session_longer_than_cap", { detail: `cap ${cap} min` });

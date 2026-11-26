@@ -6,6 +6,7 @@
 - Install: `git clone https://github.com/QA-army/open-device-router && cd open-device-router && npm install && npm run build && npm link && npm i agent-device`
 - Check setup: `odr doctor`
 - Keys for every provider (signup URL, key location, env var, gh secret line): `odr keys --all` or docs/keys.md
+- Connect every free provider, one signup at a time: `odr onboard` or docs/onboarding.md. The person finishes each form. Stubs are recorded and not started. SDK: `import { onboardingCatalog } from "opendevicerouter/onboard"`
 - Run a session around a command: `odr run --platform android --build app.apk --minutes 10 -- <cmd>` (exit 0 ok, 3 refused, 4 failed, 5 closure unverified)
 - SDK: `import { allocate, withSession, attach } from "opendevicerouter"`; Midscene: `import { midsceneInterface } from "opendevicerouter/midscene"`
 - Clean up dead sessions: `odr sweep`

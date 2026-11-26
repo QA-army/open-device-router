@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
 import { costInUnits, loadState, odrHome, remainingFor, saveState, type Connection } from "../core/ledger.js";
+import { credentialStatus } from "../onboarding/catalog.js";
 import { route, TYPE_ORDER } from "../core/router.js";
 import { isSurface, SURFACES, type Allowance, type Provider, type Surface } from "../core/types.js";
 import { ageInDays, findProvider, loadRegistry } from "../registry/load.js";
 import { freeTiersMarkdown } from "./free-tiers.js";
 import { keysMarkdown } from "./keys.js";
+import { cmdOnboard } from "./onboard.js";
 import { cmdDoctor, cmdForget, cmdKeys, cmdReconcile, cmdRun, cmdSessions, cmdSweep, REQUEST_OPTIONS, requestFromFlags } from "./session-commands.js";
 import { VERSION } from "../version.js";
 
@@ -19,7 +21,7 @@ Sessions
   odr sessions [--all]             open reservations in the ledger
   odr sweep                        stop devices left by dead or lost workers
   odr session forget <id>          mark a reservation closed after checking the provider by hand
-  odr reconcile <id>               pull the provider's own usage figure (Appetize today)
+  odr reconcile <id>               pull the provider's own usage figure (Appetize, AWS Device Farm)
 
 Keys and accounts
   odr keys [id] [--all]            where to get each key, env var names, gh secret lines
@@ -30,6 +32,10 @@ Keys and accounts
 
 Registry and planning
   odr providers [--status s] [--surface s] [--json]
+  odr providers status [--json]    which accounts are connected, and metered minutes left
+  odr onboard [next|verify <id>|summary|open <id>] [--json]
+                                   walk every free provider: print the signup URL, check env
+                                   presence, record the connection. A person finishes each signup.
   odr show <id>
   odr plan (same request flags as run) [--json]   dry run: which provider, which profile, why
   odr status [--json]              connected providers and free capacity left
@@ -183,9 +189,11 @@ function cmdConnect(argv: string[]): void {
     return;
   }
 
-  const missing = (p.hands.env ?? []).filter((name) => !process.env[name]);
+  const missing = p.credentials.kind === "iam_role"
+    ? credentialStatus(p).missing
+    : (p.hands.env ?? []).filter((name) => !process.env[name]);
   if (missing.length > 0 && !values["skip-env-check"]) {
-    fail(`${missing.join(", ")} not set. Export it, or pass --skip-env-check if the credential lives elsewhere.`);
+    fail(`${missing.join(", ")} not set. Export it, or pass --skip-env-check if the credential lives elsewhere. Values are not read.`);
   }
   const connection: Connection = { connected_at: new Date().toISOString() };
   if (values.surfaces) {
@@ -371,7 +379,10 @@ async function main(): Promise<void> {
       console.log(HELP);
       return;
     case "providers":
+      if (rest[0] === "status") return cmdOnboard(["summary", ...rest.slice(1)], loadValid());
       return cmdProviders(rest);
+    case "onboard":
+      return cmdOnboard(rest, loadValid());
     case "show":
       return void console.log(JSON.stringify(need(loadValid(), rest[0]), null, 2));
     case "validate":

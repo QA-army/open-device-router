@@ -63,16 +63,36 @@ test("a session longer than the provider cap is not routed there", () => {
   assert.equal(d.considered.find((c) => c.provider === "aws-device-farm")?.skip, "session_longer_than_cap");
 });
 
-test("free-only refuses AWS Device Farm: the trial bills after it runs out and has no usage API", () => {
+test("free-only refuses AWS Device Farm until reconcile confirms the trial still covers the session", () => {
   const d = route({ surface: "android-real", minutes: 30 }, providers, stateWith("aws-device-farm", "revyl"), now);
   assert.equal(d.chosen, undefined);
   assert.equal(d.considered.find((c) => c.provider === "aws-device-farm")?.skip, "overage_bills_remaining_unverified");
+});
+
+test("AWS free-only routes only after a fresh reconcile that covers the session", () => {
+  const s = stateWith("aws-device-farm");
+  const req = { surface: "android-real" as const, minutes: 30 };
+  s.reconciliations.push({ provider: "aws-device-farm", at: "2026-11-22T11:00:00Z", period: "one_time", provider_minutes: 0, local_minutes: 0 });
+  const fresh = route(req, providers, s, now);
+  assert.equal(fresh.chosen?.provider, "aws-device-farm");
+  assert.equal(fresh.chosen?.basis, "provider_reconciled");
+  assert.equal(fresh.chosen?.remaining, 1000);
+  s.reconciliations[0]!.provider_minutes = 980;
+  const tight = route(req, providers, s, now);
+  assert.equal(tight.chosen, undefined);
+  assert.equal(tight.considered.find((c) => c.provider === "aws-device-farm")?.skip, "not_enough_remaining");
+  const stale = stateWith("aws-device-farm");
+  stale.reconciliations.push({ provider: "aws-device-farm", at: "2026-11-21T11:00:00Z", period: "one_time", provider_minutes: 0, local_minutes: 0 });
+  assert.equal(route(req, providers, stale, now).considered.find((c) => c.provider === "aws-device-farm")?.skip, "overage_bills_remaining_unverified");
 });
 
 test("a budget lets AWS Device Farm serve real devices, priced as if every minute bills", () => {
   const d = route({ surface: "android-real", minutes: 30, spend: { mode: "budget", max_usd: 10 } }, providers, stateWith("aws-device-farm"), now);
   assert.equal(d.chosen?.provider, "aws-device-farm");
   assert.equal(d.chosen?.usd, 5.1);
+  const frac = route({ surface: "android-real", minutes: 10.2, spend: { mode: "budget", max_usd: 10 } }, providers, stateWith("aws-device-farm"), now);
+  assert.equal(frac.chosen?.cost, 11);
+  assert.equal(frac.chosen?.usd, 1.87);
   const tight = route({ surface: "android-real", minutes: 30, spend: { mode: "budget", max_usd: 1 } }, providers, stateWith("aws-device-farm"), now);
   assert.equal(tight.chosen, undefined);
   assert.equal(tight.considered.find((c) => c.provider === "aws-device-farm")?.skip, "over_budget");
@@ -86,12 +106,32 @@ test("providers without a verified control path are never chosen", () => {
   }
 });
 
-test("open-source programs need explicit confirmation", () => {
+test("open-source programs need explicit confirmation once a session driver exists", () => {
+  const bs = structuredClone(findProvider(providers, "browserstack")!);
+  bs.control = {
+    driver: "agent-device",
+    inputs: ["screenshot"],
+    screenshot: "whole_session",
+    build_formats: [],
+    install: "none",
+    closure_check: "driver",
+    evidence: "vendor-documented",
+    source: "https://www.browserstack.com/open-source",
+  };
+  const list = providers.map((p) => (p.id === "browserstack" ? bs : p));
   const s = stateWith("browserstack");
   s.usage.push({ provider: "browserstack", allowance: 1, amount: 100, minutes: 100, surface: "android-real", at: "2026-11-10T00:00:00Z" });
-  assert.equal(route({ surface: "android-real", minutes: 5 }, providers, s, now).chosen, undefined);
+  assert.equal(route({ surface: "android-real", minutes: 5 }, list, s, now).chosen, undefined);
   s.connections.browserstack!.oss_program = true;
-  assert.equal(route({ surface: "android-real", minutes: 5 }, providers, s, now).chosen?.type, "oss_program");
+  assert.equal(route({ surface: "android-real", minutes: 5 }, list, s, now).chosen?.type, "oss_program");
+});
+
+test("a provider with no session driver is an onboarding stub, even if its allowance would otherwise pass", () => {
+  const s = stateWith("browserstack");
+  s.connections.browserstack!.oss_program = true;
+  const d = route({ surface: "android-real", minutes: 5, require_control: true }, providers, s, now);
+  assert.equal(d.chosen, undefined);
+  assert.equal(d.considered.find((c) => c.provider === "browserstack")?.skip, "adapter_stub");
 });
 
 test("a narrowed connection limits surfaces", () => {

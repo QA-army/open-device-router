@@ -69,6 +69,8 @@ export interface AllocateOptions {
 async function builtinDriver(name: string): Promise<DriverModule> {
   if (name === "agent-device") return (await import("./drivers/agent-device.js")).agentDeviceDriver;
   if (name === "appetize-cli") return (await import("./drivers/appetize.js")).appetizeDriver;
+  if (name === "aws-device-farm") return (await import("./drivers/aws-device-farm.js")).awsDeviceFarmDriver;
+  if (name === "stub") return (await import("./drivers/stub.js")).stubDriver;
   throw new SessionError("no_driver", `no driver named ${name}`);
 }
 

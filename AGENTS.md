@@ -2,6 +2,10 @@
 
 Instructions for coding agents working in this repository.
 
+## Connecting free providers for a person
+
+If the person wants every free device integration connected, follow [docs/onboarding.md](docs/onboarding.md) and the `odr onboard` commands. Open each signup URL and wait. Do not submit forms, accept terms, solve captchas, or type card, phone, or password values. Do not read credential values into the chat or the repo. `odr onboard verify` only checks that env vars are set. Providers marked `stub` are recorded and are not started. Firebase Test Lab is excluded on purpose.
+
 ## Scope
 
 OpenDeviceRouter decides where a browser or mobile session runs and owns its lifecycle: reserve, allocate, install, launch, first frame, heartbeat, release, verify closure, receipt. It holds a provider registry, a deterministic router, a locked local ledger, thin drivers over agent-device and the Appetize CLI, a Node SDK, and a benchmark harness. It does not implement device control, host devices, or judge test results. Keep changes inside that scope.

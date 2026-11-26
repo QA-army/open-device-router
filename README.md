@@ -34,7 +34,7 @@ OpenDeviceRouter handles the part around the device:
 - **Verify closure** from the provider's own session list or the local simulator/emulator state.
 - **Receipt** for every session (`odr.receipt/v1`): route, actual device identity, timings, screenshot health, usage and closure. No credentials and no session handle in it.
 
-Device control is [agent-device](https://github.com/callstack/agent-device) (MIT) for local, GitHub runners, Limrun, Revyl and AWS Device Farm, and the [Appetize CLI](https://docs.appetize.io/ai-agents/getting-started) for Appetize. odr does not reimplement device control.
+Device control is [agent-device](https://github.com/callstack/agent-device) (MIT) for local, GitHub runners, Limrun and Revyl, and the [Appetize CLI](https://docs.appetize.io/ai-agents/getting-started) for Appetize. AWS Device Farm remote-access sessions are created and stopped through the Device Farm API. odr does not reimplement taps or screenshots; on Device Farm it will not open a metered session until an interactor is attached.
 
 ## Quick start
 
@@ -82,9 +82,24 @@ Free allowances are vendor-documented on the date shown, not measured. Each link
 | Appetize | iOS Simulator, Android emulator | Free: 30 min a month, 3-minute sessions, 2 devices ([pricing](https://appetize.io/pricing)) | 3 min on Free | 2 on Free | Appetize CLI | Free throttles; Starter and Premium bill $0.06/min after 500 min |
 | Revyl | iOS Simulator, Android emulator | Up to 1,200 device minutes a month ([pricing](https://revyl.com/pricing/)) | see registry | 2 | agent-device | see registry |
 | Limrun | iOS Simulator, Android emulator | 120 one-time credits ([pricing](https://limrun.com/pricing)) | see registry | see registry | agent-device | see registry |
-| AWS Device Farm | Real iOS and Android devices | 1,000 one-time device minutes ([FAQ](https://aws.amazon.com/device-farm/faqs/)) | 150 min | per account | agent-device | bills per minute; free-only never routes here |
+| AWS Device Farm | Real iOS and Android devices | 1,000 one-time device minutes ([FAQ](https://aws.amazon.com/device-farm/faqs/), [pricing](https://aws.amazon.com/device-farm/pricing/), read 2026-11-26) | 150 min | per account | Device Farm API | $0.17/min after the trial. Free-only routes only after `odr reconcile aws-device-farm` confirms the remaining minutes cover the session |
 
-Exact device profiles, inputs, keys, build formats and limits per provider: `odr show <id>` or [registry/providers/](registry/providers/). Fourteen more providers, including browser clouds, are researched or candidate entries: [docs/free-tiers.md](docs/free-tiers.md).
+Exact device profiles, inputs, keys, build formats and limits per provider: `odr show <id>` or [registry/providers/](registry/providers/). The rest of the registry, including browser clouds and the onboarding stubs (BrowserStack, Sauce Labs, TestMu AI, Kobiton, Mobilerun, Run Cloud, and others), is in [docs/free-tiers.md](docs/free-tiers.md). Firebase Test Lab is not listed: Google is shutting it down ([migration FAQ](https://firebase.google.com/docs/test-lab/migrate-faq)).
+
+## Connect every free provider
+
+A coding agent can walk a person through every provider in the registry. The person signs up. odr never submits a form.
+
+```sh
+odr onboard                  # next signup URL, what to set, how to verify
+odr onboard next --json      # the same, for an agent
+odr onboard open appetize    # open the URL in a browser; the person finishes it
+odr onboard verify appetize  # checks that the env var is set, and does not print it
+odr connect appetize --done
+odr onboard summary --json   # connected providers and metered minutes still on the ledger
+```
+
+`import { onboardingCatalog, freeMinuteSummary } from "opendevicerouter/onboard"` is the same catalog. The procedure for an agent is [docs/onboarding.md](docs/onboarding.md). Providers marked `stub` are recorded and are not started by `odr run`.
 
 ## SDK
 
@@ -156,7 +171,7 @@ Cloud results are published only when the provider's terms allow it; until then 
 
 ## For agents
 
-- Operating guide: [AGENTS.md](AGENTS.md) · Machine summary: [llms.txt](llms.txt) · Keys: [docs/keys.md](docs/keys.md) or `odr keys --all`
+- Operating guide: [AGENTS.md](AGENTS.md) · Connect every free provider: [docs/onboarding.md](docs/onboarding.md) · Machine summary: [llms.txt](llms.txt) · Keys: [docs/keys.md](docs/keys.md) or `odr keys --all`
 - Machine-readable output: `odr plan --json`, `odr run --json`, `odr providers --json`, `odr status --json`.
 - Receipt schema: [schema/receipt.schema.json](schema/receipt.schema.json).
 - Always release: use `withSession`, or `odr run -- <cmd>`, and run `odr sweep` at the start of CI jobs.

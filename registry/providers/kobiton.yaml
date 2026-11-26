@@ -1,0 +1,50 @@
+# Vendor-documented facts as of checked_at. Schema: schema/provider.schema.json
+id: kobiton
+name: Kobiton
+status: candidate
+checked_at: '2026-11-26'
+homepage: https://kobiton.com/pricing/
+surfaces:
+  - android-real
+  - ios-real
+hands:
+  kind: unknown
+  notes: The register page says the free account can generate Appium scripts. The session control path
+    was not integrated. This entry is an onboarding stub.
+signup:
+  required: true
+  url: https://portal.kobiton.com/register
+  evidence:
+    - not_researched
+  card_required: false
+  phone_required: unknown
+  work_email_required: unknown
+  notes: The register page says "No credit card required" and recommends a work email. The form fields
+    were not submitted or fully captured.
+credentials:
+  kind: unknown
+  acquire: unknown
+  notes: The pages read on this date do not name an env var. Do not invent one.
+allowances:
+  - type: unverified
+    amount: 300
+    unit: minute
+    scope: Free account on the register page. The page does not say whether the minutes renew.
+    source: https://portal.kobiton.com/register
+    overage: unknown
+    notes: The service subscription agreement describes a trial subscription as thirty days unless
+      Kobiton grants another period. The register page does not say the 300 minutes expire, so no
+      expiry is recorded here.
+paid:
+  summary: Startup plan starts at $83 per month with 500 minutes a month.
+  source: https://kobiton.com/pricing/
+policy:
+  max_accounts_per_org: 1
+  benchmark_publication: unknown
+  third_party_access: unknown
+  terms_url: https://kobiton.com/service-subscription-agreement/
+  terms_checked_note: Agreement last updated 2025-06-21, read 2026-11-26.
+sources:
+  - https://portal.kobiton.com/register
+  - https://kobiton.com/pricing/
+  - https://kobiton.com/service-subscription-agreement/

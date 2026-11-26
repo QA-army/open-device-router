@@ -2,7 +2,7 @@
 id: aws-device-farm
 name: AWS Device Farm
 status: launch
-checked_at: '2026-11-22'
+checked_at: '2026-11-26'
 homepage: https://aws.amazon.com/device-farm/
 surfaces:
   - android-real
@@ -10,14 +10,15 @@ surfaces:
 hands:
   kind: agent-device
   provider_id: aws-device-farm
+  env:
+    - AWS_DEVICE_FARM_PROJECT_ARN
   requires:
     - AWS CLI with a working credential chain
-  connect_args:
-    - --aws-project-arn <project-arn>
-    - --aws-device-arn <device-arn>
-  source: https://agent-device.dev/docs/aws-device-farm
-  notes: Remote-access sessions. App is passed as an upload ARN (`--aws-app-arn`); there is no install
-    after allocation. Video and logs are available once AWS finalizes them.
+  source: https://docs.aws.amazon.com/devicefarm/latest/developerguide/remote-access.html
+  notes: Remote-access sessions for Android and iOS. odr creates the session through the Device Farm
+    API (METERED billing) and stops it on every exit. Pixel input is not started unless an interactor
+    is attached, so a metered session is not opened and then abandoned. The project ARN is not a
+    secret; credential values stay in the AWS credential chain.
 signup:
   required: true
   url: https://signin.aws.amazon.com/signup?request_type=register
@@ -70,8 +71,9 @@ credentials:
     - AWS_SESSION_TOKEN
   source: https://agent-device.dev/docs/aws-device-farm
   notes: Standard AWS credential chain. Prefer short-lived role credentials over long-lived user keys.
-    A CloudFormation quick-create link that provisions a least-privilege role is proposed and not
-    built.
+    Set AWS_DEVICE_FARM_PROJECT_ARN to the project. A CloudFormation quick-create link that provisions
+    a least-privilege role is proposed and not built. `odr reconcile aws-device-farm` sums metered
+    device minutes; free-only routing refuses until that figure is fresh.
 allowances:
   - type: one_time
     amount: 1000
@@ -79,8 +81,10 @@ allowances:
     max_session_minutes: 150
     scope: Real-device free trial. Does not renew.
     source: https://aws.amazon.com/device-farm/faqs/
-    notes: The pricing page describes 1,000 minutes as a limited-time offer in place of the standard
-      250. Managed Appium endpoint sessions run up to 150 minutes with a 5-minute idle timeout.
+    notes: Pricing page, read 2026-11-26, says the first 1,000 minutes are free and that this is a
+      one-time trial of 1,000 minutes instead of the standard 250. The FAQ says the same and that
+      the trial does not renew. Managed Appium endpoint sessions run up to 150 minutes with a
+      5-minute idle timeout.
     overage: bills
     overage_usd_per_minute: 0.17
     overage_source: https://aws.amazon.com/device-farm/pricing/
@@ -105,6 +109,9 @@ sources:
   - https://repost.aws/knowledge-center/create-and-activate-aws-account
   - https://docs.aws.amazon.com/devicefarm/latest/developerguide/appium-endpoint-interaction.html
   - https://aws.amazon.com/service-terms/
+  - https://docs.aws.amazon.com/devicefarm/latest/developerguide/remote-access.html
+  - https://docs.aws.amazon.com/devicefarm/latest/APIReference/API_CreateRemoteAccessSession.html
+  - https://docs.aws.amazon.com/devicefarm/latest/APIReference/API_DeviceMinutes.html
   - https://agent-device.dev/docs/aws-device-farm
 profiles:
   - id: aws-any-ios
@@ -124,27 +131,30 @@ profiles:
     source: https://agent-device.dev/docs/device-clouds
     notes: Any device in the Device Farm remote-access pool for the configured project.
 control:
-  driver: agent-device
-  package: agent-device
-  min_version: 0.21.0
-  lease_provider: aws-device-farm
+  driver: aws-device-farm
   inputs:
     - screenshot
     - tap
     - type
     - swipe
     - key
+    - install
     - launch
   keys:
     - enter
     - home
     - back
   screenshot: whole_session
-  build_formats: []
-  install: none
-  closure_check: driver
+  build_formats:
+    - apk
+    - ipa
+  install: upload_before_allocation
+  closure_check: provider_api
+  usage_api: https://docs.aws.amazon.com/devicefarm/latest/APIReference/API_DeviceMinutes.html
   max_session_minutes: 150
   evidence: vendor-documented
-  source: https://agent-device.dev/docs/device-clouds
-  notes: The app is passed as an uploaded Device Farm ARN (`--aws-app-arn`); there is no install after
-    allocation. Billed after the trial, so free-only routing never picks it.
+  source: https://docs.aws.amazon.com/devicefarm/latest/developerguide/remote-access.html
+  notes: Upload the apk or ipa, create a metered remote-access session, stop it, and delete the upload.
+    Closure is GetRemoteAccessSession status COMPLETED. Free-only routing runs only after a fresh
+    `odr reconcile aws-device-farm`. Pixel control is refused until an interactor is attached, so
+    odr does not open a metered session it cannot drive. Live AWS was not called from CI.

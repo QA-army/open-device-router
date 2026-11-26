@@ -134,7 +134,7 @@ export interface DeviceProfile {
 }
 
 export interface Control {
-  driver: "agent-device" | "appetize-cli";
+  driver: "agent-device" | "appetize-cli" | "aws-device-farm" | "stub";
   package?: string;
   min_version?: string;
   lease_backend?: string;
